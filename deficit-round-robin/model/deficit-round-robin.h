@@ -33,8 +33,7 @@ private:
 	int32_t GetQueueToBePeeked() const;
 	void schedule(Ptr<QueueItem> p);
 
-	uint32_t quantumSize1;
-	uint32_t quantumSize2;
+	uint32_t quantumSize;
 	uint32_t m_priorityPort;
 
 	uint32_t m_highMaxPackets;

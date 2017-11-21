@@ -27,7 +27,7 @@ TypeId DeficitRoundRobin::GetTypeId(void) {
 	static TypeId tid = TypeId("ns3::DeficitRoundRobin")
      .SetParent<BaseClass> ()
      .AddConstructor<DeficitRoundRobin> ()
-     .AddAttribute ("DRRMode",
+     .AddAttribute ("Mode",
                     "Whether to use bytes (see MaxBytes) or packets (see MaxPackets) as the maximum queue size metric.",
                    EnumValue (QUEUE_MODE_PACKETS),
                    MakeEnumAccessor (&DeficitRoundRobin::SetMode),
@@ -62,16 +62,10 @@ TypeId DeficitRoundRobin::GetTypeId(void) {
                    UintegerValue (3000),
                    MakeUintegerAccessor (&DeficitRoundRobin::m_priorityPort),
                    MakeUintegerChecker<uint32_t> ())
-      .AddAttribute("QuantumSize1",
+      .AddAttribute("QuantumSize",
                   "The packet size permitted for each queue",
                   UintegerValue(1),
-                  MakeUintegerAccessor(&DeficitRoundRobin::quantumSize1),
-                  MakeUintegerChecker<uint32_t>())
-
-      .AddAttribute("QuantumSize2",
-                  "The packet size permitted for each queue",
-                  UintegerValue(1),
-                  MakeUintegerAccessor(&DeficitRoundRobin::quantumSize2),
+                  MakeUintegerAccessor(&DeficitRoundRobin::quantumSize),
                   MakeUintegerChecker<uint32_t>());
 	return tid;
 }
@@ -205,7 +199,7 @@ Ptr<QueueItem> DeficitRoundRobin::DoDequeue(void) {
 
     if(!q_class[1]->m_queue.empty() || !q_class[0]->m_queue.empty()){
         if (!q_class[1]->m_queue.empty() && !m_serve_queue2) { //Check == false
-                m_first_dc += quantumSize1;
+                m_first_dc += quantumSize;
                 Ptr<QueueItem> packet1 = q_class[1]->m_queue.front();
                 NS_LOG_LOGIC("-------------------Queue1 is being served-----------------------");
                 NS_LOG_LOGIC("Number bytes in first queue1 " << q_class[1]->getBytes());
@@ -234,7 +228,7 @@ Ptr<QueueItem> DeficitRoundRobin::DoDequeue(void) {
         }
 
         else if(!q_class[0]->m_queue.empty() && m_serve_queue2) { //check == true
-                m_second_dc += quantumSize2;
+                m_second_dc += quantumSize;
                 Ptr<QueueItem> packet2 = q_class[0]->m_queue.front();
                 NS_LOG_LOGIC("------------------Queue2 is being served-------------------------");                
                 NS_LOG_LOGIC("Defecit Counter Queue2 before" << m_second_dc);                
@@ -246,9 +240,9 @@ Ptr<QueueItem> DeficitRoundRobin::DoDequeue(void) {
                 }
 
                 
-                if(q_class[0]->m_queue.empty()){
-                        m_second_dc = 0;
-                }
+                //if(m_secondQueue.empty()){
+                  //      m_second_dc = 0;
+                //}
 
                 NS_LOG_LOGIC("Number packets " << q_class[0]->m_queue.size ());
                 NS_LOG_LOGIC("Packet SIZE " << packet2->GetPacket()->GetSize()); 
