@@ -79,7 +79,7 @@ main (int argc, char *argv[])
   uint32_t ftp2_data_bytes = DEFAULT_DATA_BYTES;
 
   double DEFAULT_START_TIME = 0.0;
-  double DEFAULT_END_TIME = 500.0;
+  double DEFAULT_END_TIME = 1000.0;
 
   double simEndTime = DEFAULT_END_TIME;
 
