@@ -75,11 +75,11 @@ main (int argc, char *argv[])
   uint32_t tcp_adu_size = 1100;
 
   uint32_t DEFAULT_DATA_BYTES = 10000000; // 1Gigabit
-  uint32_t ftp1_data_bytes = DEFAULT_DATA_BYTES * 2;
+  uint32_t ftp1_data_bytes = DEFAULT_DATA_BYTES;
   uint32_t ftp2_data_bytes = DEFAULT_DATA_BYTES;
 
   double DEFAULT_START_TIME = 0.0;
-  double DEFAULT_END_TIME = 100.0;
+  double DEFAULT_END_TIME = 60.0;
 
   double simEndTime = DEFAULT_END_TIME;
 
@@ -93,7 +93,7 @@ main (int argc, char *argv[])
   double sinkApps2StartTime = DEFAULT_START_TIME;
   double sinkApps2EndTime = DEFAULT_END_TIME;
 
-  std::string filename = "-TwoQs-48.txt";
+  std::string filename = "-TwoQs-47.txt";
   std::string DEFAULT_DELAY = "30ms";
   std::string DEFAULT_DELAY_Q = "3ms";
 
@@ -224,8 +224,7 @@ main (int argc, char *argv[])
   p2p.SetChannelAttribute ("Delay", (StringValue) N1N2Delay);
   p2p.SetDeviceAttribute ("DataRate", (StringValue) N1N2DataRate);
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (N1N2Mtu));
-  p2p.SetQueue("ns3::StrictPriorityQueue", 
-    "HighPriorityMaxPackets", UintegerValue (firstQueueSize),
+  p2p.SetQueue("ns3::StrictPriorityQueue", "HighPriorityMaxPackets", UintegerValue (firstQueueSize),
     "LowPriorityMaxPackets", UintegerValue (secondQueueSize),
     "HighPriorityPort", UintegerValue (secondQueuePort));
   NetDeviceContainer N1N2_d = p2p.Install (N1N2);

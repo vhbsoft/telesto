@@ -83,7 +83,7 @@ main (int argc, char *argv[])
   uint16_t R5port = 3004;
   uint32_t tcp_adu_size = 946;
 
-  uint32_t DEFAULT_DATA_BYTES = 107374184; // 1Gigabit
+  uint32_t DEFAULT_DATA_BYTES = 1073741824; // 1Gigabit
   uint32_t ftp1_data_bytes = DEFAULT_DATA_BYTES;
   uint32_t ftp2_data_bytes = DEFAULT_DATA_BYTES;
   uint32_t ftp3_data_bytes = DEFAULT_DATA_BYTES;
@@ -91,17 +91,17 @@ main (int argc, char *argv[])
   uint32_t ftp5_data_bytes = DEFAULT_DATA_BYTES;
 
   double DEFAULT_START_TIME = 0.0;
-  double DEFAULT_END_TIME = 1000.0;
+  double DEFAULT_END_TIME = 600.0;
 
   double simEndTime = DEFAULT_END_TIME;
 
-  double ftpApp1StartTime = DEFAULT_START_TIME + 80.0;
+  double ftpApp1StartTime = DEFAULT_START_TIME + 40.0;
   double ftpApp1EndTime = DEFAULT_END_TIME;
-  double ftpApp2StartTime = DEFAULT_START_TIME + 60.0;
+  double ftpApp2StartTime = DEFAULT_START_TIME + 30.0;
   double ftpApp2EndTime = DEFAULT_END_TIME;
-  double ftpApp3StartTime = DEFAULT_START_TIME + 40.0;
+  double ftpApp3StartTime = DEFAULT_START_TIME + 20.0;
   double ftpApp3EndTime = DEFAULT_END_TIME;  
-  double ftpApp4StartTime = DEFAULT_START_TIME + 20.0;
+  double ftpApp4StartTime = DEFAULT_START_TIME + 10.0;
   double ftpApp4EndTime = DEFAULT_END_TIME;  
   double ftpApp5StartTime = DEFAULT_START_TIME;
   double ftpApp5EndTime = DEFAULT_END_TIME;
@@ -117,28 +117,28 @@ main (int argc, char *argv[])
   double sinkApps5StartTime = DEFAULT_START_TIME;
   double sinkApps5EndTime = DEFAULT_END_TIME;
 
-  std::string filename = "-fiveQs-17.txt";
-  std::string DEFAULT_DELAY = "5ms";
+  std::string filename = "-fiveQs-06.txt";
+  std::string DEFAULT_DELAY = "1ms";
   std::string S1N1Delay = DEFAULT_DELAY;
   std::string S2N1Delay = DEFAULT_DELAY;
   std::string S3N1Delay = DEFAULT_DELAY;
   std::string S4N1Delay = DEFAULT_DELAY;
   std::string S5N1Delay = DEFAULT_DELAY;
-  std::string N1N2Delay = "10ms";
-  std::string N2R1Delay = "10ms";
-  std::string N2R2Delay = "10ms";
-  std::string N2R3Delay = "10ms";
-  std::string N2R4Delay = "10ms";
-  std::string N2R5Delay = "10ms";
+  std::string N1N2Delay = "5ms";
+  std::string N2R1Delay = "5ms";
+  std::string N2R2Delay = "5ms";
+  std::string N2R3Delay = "5ms";
+  std::string N2R4Delay = "5ms";
+  std::string N2R5Delay = "5ms";
 
-  std::string DEFAULT_DATARATE = "100Mbps";
+  std::string DEFAULT_DATARATE = "40Mbps";
   std::string S1N1DataRate = DEFAULT_DATARATE;
   std::string S2N1DataRate = DEFAULT_DATARATE;
   std::string S3N1DataRate = DEFAULT_DATARATE;
   std::string S4N1DataRate = DEFAULT_DATARATE;
   std::string S5N1DataRate = DEFAULT_DATARATE;
 
-  std::string N1N2DataRate = "10Mbps";
+  std::string N1N2DataRate = "4Mbps";
 
   std::string N2R1DataRate = DEFAULT_DATARATE;
   std::string N2R2DataRate = DEFAULT_DATARATE;
@@ -369,30 +369,19 @@ main (int argc, char *argv[])
   p2p.SetQueue("ns3::DropTailQueue", "MaxPackets", UintegerValue (TXQueueSizeS5N1));
   NetDeviceContainer S5N1_d = p2p.Install (S5N1);
 
- /* //N1N2 - SPQ 
-  p2p.SetChannelAttribute ("Delay", (StringValue) N1N2Delay);
-  p2p.SetDeviceAttribute ("DataRate", (StringValue) N1N2DataRate);
-  p2p.SetDeviceAttribute ("Mtu", UintegerValue (N1N2Mtu));
-  p2p.SetQueue("ns3::StrictPriorityQueue", 
-    "Priority0MaxPackets", UintegerValue (firstQueueSize),
-    "Priority1MaxPackets", UintegerValue (secondQueueSize),
-    // "Priority2MaxPackets", UintegerValue (thirdQueueSize),
-    // "Priority3MaxPackets", UintegerValue (forthQueueSize),
-    // "Priority4MaxPackets", UintegerValue (fifthQueueSize),
-    "Priority0Port", UintegerValue (HighestPP),
-    "Priority1Port", UintegerValue (HigherPP)//,
-    // "Priority2Port", UintegerValue (MediumPP),
-    // "Priority3Port", UintegerValue (LowerPP),
-    // "Priority4Port", UintegerValue (LowestPP)
-    );
-  NetDeviceContainer N1N2_d = p2p.Install (N1N2);
-*/
+  //N1N2: SPQ on N1, regular tail drop queue on N2
+  // p2p.SetChannelAttribute ("Delay", (StringValue) N1N2Delay);
+  // p2p.SetDeviceAttribute ("DataRate", (StringValue) N1N2DataRate);
+  // p2p.SetDeviceAttribute ("Mtu", UintegerValue (N1N2Mtu));
+  // p2p.SetQueue("ns3::StrictPriorityQueue", "HighPriorityMaxPackets", UintegerValue (firstQueueSize),
+  //              "LowPriorityMaxPackets", UintegerValue (secondQueueSize),
+  //              "HighPriorityPort", UintegerValue (secondQueuePort));
   p2p.SetChannelAttribute ("Delay", (StringValue) N1N2Delay);
   p2p.SetDeviceAttribute ("DataRate", (StringValue) N1N2DataRate);
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (N1N2Mtu));
   p2p.SetQueue("ns3::DropTailQueue", "MaxPackets", UintegerValue (firstQueueSize));
   NetDeviceContainer N1N2_d = p2p.Install (N1N2);
-  
+
   ObjectFactory m_queueFactory("ns3::StrictPriorityQueue");
   m_queueFactory.Set ("Priority0MaxPackets", UintegerValue (firstQueueSize));
   m_queueFactory.Set ("Priority1MaxPackets", UintegerValue (secondQueueSize));

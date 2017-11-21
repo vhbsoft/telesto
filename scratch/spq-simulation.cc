@@ -39,8 +39,6 @@
 #include "ns3/deficit-round-robin.h"
 #include "ns3/flow-monitor.h"
 #include "ns3/flow-monitor-helper.h"
-#include "ns3/packet-sink.h"
-#include "ns3/base-class.h"
 #include <sstream>
 #include <math.h>
 
@@ -72,14 +70,14 @@ main (int argc, char *argv[])
   uint16_t secondQueuePort = 3001;
   uint16_t R1port = 3000;
   uint16_t R2port = 3001;
-  uint32_t tcp_adu_size = 1100;
+  uint32_t tcp_adu_size = 946;
 
-  uint32_t DEFAULT_DATA_BYTES = 10000;//0000;
+  uint32_t DEFAULT_DATA_BYTES = 1073741824; //1000000000;
   uint32_t ftp1_data_bytes = DEFAULT_DATA_BYTES;
   uint32_t ftp2_data_bytes = DEFAULT_DATA_BYTES;
 
   double DEFAULT_START_TIME = 0.0;
-  double DEFAULT_END_TIME = 100.0;
+  double DEFAULT_END_TIME = 10.0;
 
   double simEndTime = DEFAULT_END_TIME;
 
@@ -100,10 +98,10 @@ main (int argc, char *argv[])
   std::string N2R1Delay = DEFAULT_DELAY;
   std::string N2R2Delay = DEFAULT_DELAY;
 
-  std::string DEFAULT_DATARATE = "40Mbps";
+  std::string DEFAULT_DATARATE = "10Mbps";
   std::string S1N1DataRate = DEFAULT_DATARATE;
   std::string S2N1DataRate = DEFAULT_DATARATE;
-  std::string N1N2DataRate = DEFAULT_DATARATE;
+  std::string N1N2DataRate = "5Mbps";
   std::string N2R1DataRate = DEFAULT_DATARATE;
   std::string N2R2DataRate = DEFAULT_DATARATE;
 
@@ -114,7 +112,7 @@ main (int argc, char *argv[])
   uint16_t N2R1Mtu = DEFAULT_MTU;
   uint16_t N2R2Mtu = DEFAULT_MTU;
 
-  uint32_t DEFAULT_QUEUE_SIZE = 6553500;
+  uint32_t DEFAULT_QUEUE_SIZE = 655350000;
   uint32_t TXQueueSizeS1N1 = DEFAULT_QUEUE_SIZE;
   uint32_t TXQueueSizeS2N1 = DEFAULT_QUEUE_SIZE;
   uint32_t TXQueueSizeN2N1 = DEFAULT_QUEUE_SIZE;
@@ -134,8 +132,8 @@ main (int argc, char *argv[])
   uint64_t totalExpectedBytes = ftp2_data_bytes;
 
   double bandwidthCalculationInterval = 0.010;
-  uint32_t quantumSize1 = 1000;
-  uint32_t quantumSize2 = 1000;
+  // uint32_t quantumSize = 1000;
+
   //std::string w = static_cast<std::ostringstream*>( &(std::ostringstream() << int(round(secondWeight/firstWeight))) )->str();
 
 
@@ -197,8 +195,7 @@ main (int argc, char *argv[])
 
   cmd.AddValue ("totalExpectedBytes", "Total expected bytes passed before end of simulation - used for showing progression percentage", totalExpectedBytes);
        
-  cmd.AddValue ("quantumSize1", "Simulation end time", quantumSize1);
-  cmd.AddValue ("quantumSize2", "Simulation end time", quantumSize2);
+  // cmd.AddValue ("quantumSize", "Simulation end time", quantumSize);
 
   cmd.Parse (argc, argv);
 
@@ -240,34 +237,25 @@ main (int argc, char *argv[])
   NetDeviceContainer S2N1_d = p2p.Install (S2N1);
 
   //N1N2: WRR on N1, regular tail drop queue on N2
-  // p2p.SetChannelAttribute ("Delay", (StringValue) N1N2Delay);
-  // p2p.SetDeviceAttribute ("DataRate", (StringValue) N1N2DataRate);
-  // p2p.SetDeviceAttribute ("Mtu", UintegerValue (N1N2Mtu));
-  // p2p.SetQueue("ns3::DropTailQueue", "MaxPackets", UintegerValue (TXQueueSizeN2N1));
-  // NetDeviceContainer N1N2_d = p2p.Install (N1N2);
-
-  // ObjectFactory m_queueFactory;
-  // m_queueFactory.SetTypeId ("ns3::DeficitRoundRobin");
-  // m_queueFactory.Set ("HighPriorityMaxPackets", UintegerValue (firstQueueSize));
-  // m_queueFactory.Set ("LowPriorityMaxPackets", UintegerValue (secondQueueSize));
-  // m_queueFactory.Set ("HighPriorityPort", UintegerValue (secondQueuePort));
-  // m_queueFactory.Set ("QuantumSize1", UintegerValue (quantumSize1));
-  // m_queueFactory.Set ("QuantumSize2", UintegerValue (quantumSize2));
-
-  // Ptr<BaseClass> queueN1 = m_queueFactory.Create<BaseClass> ();
-  // Ptr<PointToPointNetDevice>  devN1 = NetDeviceDynamicCast(N1N2_d.Get(0));
-  // devN1->SetQueue (queueN1);
-  //N1N2
   p2p.SetChannelAttribute ("Delay", (StringValue) N1N2Delay);
   p2p.SetDeviceAttribute ("DataRate", (StringValue) N1N2DataRate);
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (N1N2Mtu));
-  p2p.SetQueue("ns3::DeficitRoundRobin", 
-    "HighPriorityMaxPackets", UintegerValue (firstQueueSize),
-    "LowPriorityMaxPackets", UintegerValue (secondQueueSize),
-    "HighPriorityPort", UintegerValue (secondQueuePort),
-    "QuantumSize1", UintegerValue (quantumSize1));
-
+  p2p.SetQueue("ns3::DropTailQueue", "MaxPackets", UintegerValue (TXQueueSizeN2N1));
   NetDeviceContainer N1N2_d = p2p.Install (N1N2);
+
+  ObjectFactory m_queueFactory;
+  m_queueFactory.SetTypeId ("ns3::StrictPriorityQueue");
+  m_queueFactory.Set ("HighPriorityMaxPackets", UintegerValue (firstQueueSize));
+  m_queueFactory.Set ("LowPriorityMaxPackets", UintegerValue (secondQueueSize));
+  m_queueFactory.Set ("HighPriorityPort", UintegerValue (secondQueuePort));
+  // m_queueFactory.Set ("FirstMeanPacketSize", UintegerValue (firstMeanPacketSize));
+  // m_queueFactory.Set ("SecondMeanPacketSize", UintegerValue (secondMeanPacketSize));
+  // m_queueFactory.Set ("TotalExpectedBytes", UintegerValue (totalExpectedBytes));
+  // m_queueFactory.Set ("QuantumSize", UintegerValue (quantumSize));
+
+  Ptr<Queue> queueN1 = m_queueFactory.Create<Queue> ();
+  Ptr<PointToPointNetDevice>  devN1 = NetDeviceDynamicCast(N1N2_d.Get(0));
+  devN1->SetQueue (queueN1);
 
 
   //N2R1
@@ -347,7 +335,7 @@ main (int argc, char *argv[])
   m_factory1.Set ("Local", AddressValue (InetSocketAddress (Ipv4Address::GetAny (), R1port)));
   m_factory1.Set ("TotalExpectedRx", UintegerValue(totalExpectedBytes));
   m_factory1.Set ("BandwidthInterval", TimeValue( Seconds (bandwidthCalculationInterval)));
-  m_factory1.Set ("ReceiverName", StringValue(DEFAULT_DATARATE+"-w"+"-R1-DRR.txt"));
+  m_factory1.Set ("ReceiverName", StringValue(DEFAULT_DATARATE+"-w"+"-R1.txt"));
   Ptr<Application> app1 = m_factory1.Create<Application> ();
   R1.Get (0)->AddApplication (app1);
   ApplicationContainer sinkApps1;
@@ -362,7 +350,7 @@ main (int argc, char *argv[])
   m_factory2.Set ("Local", AddressValue (InetSocketAddress (Ipv4Address::GetAny (), R2port)));
   m_factory2.Set ("TotalExpectedRx", UintegerValue(totalExpectedBytes));
   m_factory2.Set ("BandwidthInterval", TimeValue( Seconds (bandwidthCalculationInterval)));
-  m_factory2.Set ("ReceiverName", StringValue(DEFAULT_DATARATE+"-w"+"-R2-DRR.txt"));
+  m_factory2.Set ("ReceiverName", StringValue(DEFAULT_DATARATE+"-w"+"-R2.txt"));
   Ptr<Application> app2 = m_factory2.Create<Application> ();
   R2.Get (0)->AddApplication (app2);
   ApplicationContainer sinkApps2;
@@ -376,11 +364,11 @@ main (int argc, char *argv[])
   if (tracing)
     {
       AsciiTraceHelper ascii;
-      p2p.EnableAscii (ascii.CreateFileStream ("drr-r1.tr"), R1);
-      p2p.EnableAscii (ascii.CreateFileStream ("drr-r2.tr"), R2);
+      p2p.EnableAscii (ascii.CreateFileStream ("wrr-r1.tr"), R1);
+      p2p.EnableAscii (ascii.CreateFileStream ("wrr-r2.tr"), R2);
 
-	  p2p.EnablePcap (DEFAULT_DATARATE+"-w"+"-DRR1", R1, false);
-      p2p.EnablePcap (DEFAULT_DATARATE+"-w"+"-DRR2", R2, false);
+	  p2p.EnablePcap (DEFAULT_DATARATE+"-w"+"-R1", R1, false);
+      p2p.EnablePcap (DEFAULT_DATARATE+"-w"+"-R2", R2, false);
 
       //p2p.EnablePcap (DEFAULT_DATARATE+"-w"+w+"-N2", N2, false);
     }
