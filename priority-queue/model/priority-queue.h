@@ -24,20 +24,27 @@ class StrictPriorityQueue : public BaseClass {
   // returns 1 for high 
   uint16_t classify (Ptr<QueueItem> p);
   void schedule(Ptr<QueueItem> p);
-  uint32_t m_priorityPort;
+  uint32_t m_priorityPort0;
+  uint32_t m_priorityPort1;
+  uint32_t m_priorityPort2;
+  uint32_t m_priorityPort3;
+  uint32_t m_priorityPort4;
 
-  uint32_t m_highMaxPackets;
-  uint32_t m_lowMaxPackets;
+  uint32_t m_maxPackets0;
+  uint32_t m_maxPackets1;
+  uint32_t m_maxPackets2;
+  uint32_t m_maxPackets3;
+  uint32_t m_maxPackets4;
 
-  uint32_t m_highMaxBytes;
-  uint32_t m_lowMaxBytes;
+  uint32_t m_maxBytes0;
+  uint32_t m_maxBytes1;
+  uint32_t m_maxBytes2;
+  uint32_t m_maxBytes3;
+  uint32_t m_maxBytes4;
 
   // QueueMode m_mode;
   
   public:
-    // bool Enqueue(Ptr<QueueItem> p);
-    // Ptr<QueueItem> Dequeue(void);
-    // Ptr<const QueueItem> Peek (void) const;
     static TypeId GetTypeId (void);
     void SetMode (StrictPriorityQueue::QueueMode mode);
     StrictPriorityQueue::QueueMode GetMode (void);

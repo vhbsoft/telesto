@@ -280,10 +280,11 @@ void CustomPacketSink::CalculateBandwidth()
 	{
 		last_n_intervals_sum = last_n_intervals_sum + m_last_n_intervals_data[i];
 	}
-
-	std::ofstream outputP;
-	outputP.open(("P-"+m_receiverName).c_str(), std::ofstream::app);
-	outputP << Simulator::Now().GetSeconds() << "	" << double(last_n_intervals_sum * 8)/(m_bandwidthCalculationInterval.GetSeconds() * n) << std::endl;
+  if(m_round == n-1){
+  	std::ofstream outputP;
+  	outputP.open(("P-"+m_receiverName).c_str(), std::ofstream::app);
+  	outputP << Simulator::Now().GetSeconds() << "	" << double(last_n_intervals_sum * 8)/(m_bandwidthCalculationInterval.GetSeconds() * n) << std::endl;
+  }
 }
 
 } // Namespace ns3

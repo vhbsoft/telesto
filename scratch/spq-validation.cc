@@ -224,7 +224,8 @@ main (int argc, char *argv[])
   p2p.SetChannelAttribute ("Delay", (StringValue) N1N2Delay);
   p2p.SetDeviceAttribute ("DataRate", (StringValue) N1N2DataRate);
   p2p.SetDeviceAttribute ("Mtu", UintegerValue (N1N2Mtu));
-  p2p.SetQueue("ns3::StrictPriorityQueue", "HighPriorityMaxPackets", UintegerValue (firstQueueSize),
+  p2p.SetQueue("ns3::StrictPriorityQueue", 
+    "HighPriorityMaxPackets", UintegerValue (firstQueueSize),
     "LowPriorityMaxPackets", UintegerValue (secondQueueSize),
     "HighPriorityPort", UintegerValue (secondQueuePort));
   NetDeviceContainer N1N2_d = p2p.Install (N1N2);
