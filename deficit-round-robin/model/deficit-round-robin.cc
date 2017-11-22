@@ -44,6 +44,8 @@ DeficitRoundRobin::DeficitRoundRobin(): BaseClass(){
 
   q_class[0]->setBytes(0);                    //initialize
   q_class[1]->setBytes(0);                    //initialize
+  q_class[0]->setPackets(0);
+  q_class[1]->setPackets(0);
   q_class[0]->setMaxPackets(m_highMaxPackets);//Custom settings
   q_class[1]->setMaxPackets(m_lowMaxPackets); //Custom settings
   q_class[0]->setMaxBytes(m_highMaxBytes);    //Custom settings
@@ -53,7 +55,6 @@ DeficitRoundRobin::DeficitRoundRobin(): BaseClass(){
   Filter * fil = new Filter();
   fil->set_element(prioPN);
   q_class[0]->filters.push_back(fil);
-
 
   NS_LOG_FUNCTION_NOARGS ();
 }
@@ -151,13 +152,15 @@ bool DeficitRoundRobin::DoEnqueue(Ptr<QueueItem> p) {
 	NS_LOG_FUNCTION(this << p);
 
 	uint16_t weightedQueue = classify(p);
-
+  
 	// Second Queue
 	if (weightedQueue == 1) {
 		if (m_mode == QUEUE_MODE_PACKETS
 				&& (q_class[0]->m_queue.size() >= q_class[0]->getMaxPackets())) {
 			NS_LOG_LOGIC("Queue full (at max packets) -- dropping pkt");
 			Drop(p->GetPacket());
+        printf("Checkpoint1\n");
+
 			return false;
 		}
 
@@ -166,12 +169,19 @@ bool DeficitRoundRobin::DoEnqueue(Ptr<QueueItem> p) {
 			NS_LOG_LOGIC(
 					"Queue full (packet would exceed max bytes) -- dropping pkt");
 			Drop(p->GetPacket());
+        printf("Checkpoint2\n");
+
 			return false;
 		}
 
-		q_class[0]->setBytes(q_class[0]->getBytes() + p->GetPacket()->GetSize());
-		q_class[0]->m_queue.push(p);
+		q_class[0]->setBytes(q_class[0]->getBytes() + (10 * p->GetPacket()->GetSize()));
+    q_class[0]->setPackets(q_class[0]->getPackets() + 10);
+    for(int i = 0; i < 10; i++)
+		  q_class[0]->m_queue.push(p);
+    NS_LOG_LOGIC("Q0] Number packets " << q_class[0]->getPackets());
+    NS_LOG_LOGIC("Q0] Number bytes " << q_class[0]->getBytes());
 
+  printf("Checkpoint3\n");
 
 		return true;
 	}
@@ -182,6 +192,8 @@ bool DeficitRoundRobin::DoEnqueue(Ptr<QueueItem> p) {
 				&& (q_class[1]->m_queue.size() >= q_class[1]->getMaxPackets())) {
 			NS_LOG_LOGIC("Queue full (at max packets) -- dropping pkt");
 			Drop(p->GetPacket());
+        printf("Checkpoint4\n");
+
 			return false;
 		}
 
@@ -190,20 +202,27 @@ bool DeficitRoundRobin::DoEnqueue(Ptr<QueueItem> p) {
 			NS_LOG_LOGIC(
 					"Queue full (packet would exceed max bytes) -- dropping pkt");
 			Drop(p->GetPacket());
+        printf("Checkpoint5\n");
+
 			return false;
 		}
 
-    q_class[1]->setBytes(q_class[1]->getBytes() + p->GetPacket()->GetSize());
-		q_class[1]->m_queue.push(p);
 
-		//NS_LOG_LOGIC("Number packets " << m_firstQueue.size ());
-		//NS_LOG_LOGIC("Number bytes " << m_bytesInFirstQueue);
+    q_class[1]->setBytes(q_class[1]->getBytes() + (10 * p->GetPacket()->GetSize()));
+    q_class[1]->setPackets(q_class[1]->getPackets() + 10);
+    for(int i = 0; i < 10; i++)
+		  q_class[1]->m_queue.push(p);
+    NS_LOG_LOGIC("Q1] Number packets " << q_class[0]->getPackets());
+    NS_LOG_LOGIC("Q1] Number bytes " << q_class[0]->getBytes());
+    printf("Checkpoint6\n");
 
 		return true;
 	}
 
 	// This normally never happens unless Classify() has been changed
 	else {
+      printf("Checkpoint7\n");
+
 		return false;
 	}
 }
@@ -212,73 +231,132 @@ bool DeficitRoundRobin::DoEnqueue(Ptr<QueueItem> p) {
 
 Ptr<QueueItem> DeficitRoundRobin::DoDequeue(void) {
 	NS_LOG_FUNCTION(this);
-  //printf("booooooo\n");
-    if(!q_class[1]->m_queue.empty() || !q_class[0]->m_queue.empty()){
+    // if(!q_class[1]->m_queue.empty() || !q_class[0]->m_queue.empty()){
 
-        if (!(q_class[1]->m_queue.empty()) && !(this->m_serve_queue2)) { //Check == false
-                m_first_dc += quantumSize1;
-                Ptr<QueueItem> packet1 = q_class[1]->m_queue.front();
-                NS_LOG_LOGIC("-------------------Queue1 is being served-----------------------");
-                NS_LOG_LOGIC("Number bytes in first queue1 " << q_class[1]->getBytes());
-                NS_LOG_LOGIC("Defecit Counter Queue1 before " << m_first_dc);
-               if(packet1->GetPacket()->GetSize() < m_first_dc){
-                        q_class[1]->setBytes(q_class[1]->getBytes() - packet1->GetPacket()->GetSize());
-                        q_class[1]->m_queue.pop();
-                        m_first_dc -= packet1->GetPacket()->GetSize();
+    //     if (!(q_class[1]->m_queue.empty()) && !m_serve_queue2) { //Check == false
+
+    //             m_first_dc += quantumSize1;
+    //             Ptr<QueueItem> packet1 = q_class[1]->m_queue.front();
+    //             NS_LOG_LOGIC("-------------------Queue1 is being served-----------------------");
+    //             NS_LOG_LOGIC("Number bytes in first queue1 " << q_class[1]->getBytes());
+    //             NS_LOG_LOGIC("Defecit Counter Queue1 before " << m_first_dc);
+    //            if(packet1->GetPacket()->GetSize() < m_first_dc){
+    //                     q_class[1]->setBytes(q_class[1]->getBytes() - packet1->GetPacket()->GetSize());
+    //                     q_class[1]->m_queue.pop();
+    //                     m_first_dc -= packet1->GetPacket()->GetSize();
                         
-                }
+    //             }
                 
-                if(q_class[1]->m_queue.empty()){
-                	m_first_dc = 0;
-                }
+    //             if(q_class[1]->m_queue.empty()){
+    //             	m_first_dc = 0;
+    //             }
     
                 
-                NS_LOG_LOGIC("Number packets " << q_class[1]->m_queue.size ());
-                NS_LOG_LOGIC("Packet SIze " << packet1->GetPacket()->GetSize());
-                NS_LOG_LOGIC("Number bytes in first queue2 " << q_class[1]->getBytes());
+    //             NS_LOG_LOGIC("Number packets " << q_class[1]->m_queue.size ());
+    //             NS_LOG_LOGIC("Packet SIze " << packet1->GetPacket()->GetSize());
+    //             NS_LOG_LOGIC("Number bytes in first queue2 " << q_class[1]->getBytes());
                 
                 
 
-                m_serve_queue2 = true;
-                NS_LOG_LOGIC("Defecit Counter Queue1 After " << m_first_dc);
-                return new QueueItem(packet1->GetPacket());
-        }
+    //             m_serve_queue2 = true;
+    //             NS_LOG_LOGIC("Defecit Counter Queue1 After " << m_first_dc);
+    //             return new QueueItem(packet1->GetPacket());
+    //     }
 
-        else if(!q_class[0]->m_queue.empty() && m_serve_queue2) { //check == true
-                m_second_dc += quantumSize2;
-                Ptr<QueueItem> packet2 = q_class[0]->m_queue.front();
-                NS_LOG_LOGIC("------------------Queue2 is being served-------------------------");                
-                NS_LOG_LOGIC("Defecit Counter Queue2 before" << m_second_dc);                
-                if(packet2->GetPacket()->GetSize() < m_second_dc){
-                        q_class[0]->setBytes(q_class[0]->getBytes() - packet2->GetPacket()->GetSize());
-                        q_class[0]->m_queue.pop();
-                        m_second_dc -= packet2->GetPacket()->GetSize();
+    //     else if(!q_class[0]->m_queue.empty()){
+    //       printf("Checkpoint1\n");
+
+    //       if(m_serve_queue2) { //check == true
+
+    //             m_second_dc += quantumSize2;
+    //             Ptr<QueueItem> packet2 = q_class[0]->m_queue.front();
+    //             NS_LOG_LOGIC("------------------Queue2 is being served-------------------------");                
+    //             NS_LOG_LOGIC("Defecit Counter Queue2 before" << m_second_dc);                
+    //             if(packet2->GetPacket()->GetSize() < m_second_dc){
+    //                     q_class[0]->setBytes(q_class[0]->getBytes() - packet2->GetPacket()->GetSize());
+    //                     q_class[0]->m_queue.pop();
+    //                     m_second_dc -= packet2->GetPacket()->GetSize();
                         
-                }
+    //             }
 
                 
-                if(q_class[0]->m_queue.empty()){
-                        m_second_dc = 0;
-                }
+    //             if(q_class[0]->m_queue.empty()){
+    //                     m_second_dc = 0;
+    //             }
 
-                NS_LOG_LOGIC("Number packets " << q_class[0]->m_queue.size ());
-                NS_LOG_LOGIC("Packet SIZE " << packet2->GetPacket()->GetSize()); 
-                NS_LOG_LOGIC("Number bytes in second Queue " << q_class[0]->getBytes());
+    //             NS_LOG_LOGIC("Number packets " << q_class[0]->m_queue.size ());
+    //             NS_LOG_LOGIC("Packet SIZE " << packet2->GetPacket()->GetSize()); 
+    //             NS_LOG_LOGIC("Number bytes in second Queue " << q_class[0]->getBytes());
                                
 
-                m_serve_queue2=false;
-                NS_LOG_LOGIC("Defecit Counter Queue2 After" << m_second_dc);
-                return new QueueItem(packet2->GetPacket());
+    //             m_serve_queue2=false;
+    //             NS_LOG_LOGIC("Defecit Counter Queue2 After" << m_second_dc);
+    //             return new QueueItem(packet2->GetPacket());
+    //       }
+    //       printf("Checkpoint2\n");
+    //     }
+    //     printf("Checkpoint777\n");
+    //     return 0;
+
+    // }else{
+
+		  // NS_LOG_LOGIC("all queues empty");
+		  // return 0;
+    // }
+    uint16_t queueToBeServed = GetQueueToBePeeked();
+    bool served = false;
+    //bool servedQ0 = false;
+    Ptr<QueueItem> result;
+    while(!served){
+      printf("looping\n");
+      if(queueToBeServed != 2){
+        if (queueToBeServed == 0){
+          m_first_dc += quantumSize1;
+          Ptr<QueueItem> p1 = q_class[0]->m_queue.front();
+          if(p1->GetPacket()->GetSize() < m_first_dc){
+            q_class[0]->m_queue.pop();
+            m_first_dc -= p1->GetPacket()->GetSize();
+            q_class[0]->setBytes(q_class[0]->getBytes() - p1->GetPacket()->GetSize());
+            q_class[0]->setPackets(q_class[0]->getPackets() - 1);
+            NS_LOG_LOGIC("Q0] Popped " << p1);
+            NS_LOG_LOGIC("Q0] Number packets " << q_class[0]->getPackets());
+            NS_LOG_LOGIC("Q0] Number bytes " << q_class[0]->getBytes());
+          }
+          if(q_class[0]->m_queue.empty())
+            m_first_dc = 0;
+          result =  new QueueItem(p1->GetPacket());
+          served = true;
+          m_serve_queue2 = false;
+
+        }else{
+          m_second_dc += quantumSize2;
+          Ptr<QueueItem> p1 = q_class[1]->m_queue.front();
+          if(p1->GetPacket()->GetSize() < m_second_dc){
+            q_class[1]->m_queue.pop();
+            m_second_dc -= p1->GetPacket()->GetSize();
+            q_class[1]->setBytes(q_class[1]->getBytes() - p1->GetPacket()->GetSize());
+            q_class[1]->setPackets(q_class[1]->getPackets() - 1);
+            NS_LOG_LOGIC("Q0] Popped " << p1);
+            NS_LOG_LOGIC("Q0] Number packets " << q_class[1]->getPackets());
+            NS_LOG_LOGIC("Q0] Number bytes " << q_class[1]->getBytes());
+          }
+          if(q_class[1]->m_queue.empty())
+            m_second_dc = 0;
+          result =  new QueueItem(p1->GetPacket());
+          served = true;
+          m_serve_queue2 = true;
         }
-        else
-                return NULL;
-    }
-
-    else{
-
-		NS_LOG_LOGIC("all queues empty");
-		 return NULL;
-   }
+      }
+    }//end while
+      //NS_LOG_LOGIC("all queues does not satisfy condition to be served");
+    //}else{
+      if(served)
+        return result;
+      else{
+        NS_LOG_LOGIC("all queues empty");
+        return NULL;
+      }
+    
 }
 
 
@@ -288,7 +366,7 @@ Ptr<const QueueItem> DeficitRoundRobin::DoPeek(void) const {
 
 	int32_t queueToBeServed = GetQueueToBePeeked();
 
-	if (queueToBeServed == 0) {
+	if (queueToBeServed == 1) {
 
 		Ptr<Packet> pack1 = q_class[1]->m_queue.front()->GetPacket();
 		NS_LOG_LOGIC("Number packets " << q_class[1]->m_queue.size ());
@@ -297,7 +375,7 @@ Ptr<const QueueItem> DeficitRoundRobin::DoPeek(void) const {
 		return new QueueItem(pack1);
 	}
 
-	else if (queueToBeServed == 1) {
+	else if (queueToBeServed == 0) {
 
 		Ptr<Packet> pack2 = q_class[0]->m_queue.front()->GetPacket();
 		NS_LOG_LOGIC("Number packets " << q_class[0]->m_queue.size ());
@@ -315,39 +393,27 @@ Ptr<const QueueItem> DeficitRoundRobin::DoPeek(void) const {
 
 int32_t DeficitRoundRobin::GetQueueToBePeeked() const
 {
-	if (q_class[1]->getPackets() > 0)
-	{
-		if (!q_class[1]->m_queue.empty())
+		if (!q_class[1]->m_queue.empty() && m_serve_queue2)
 		{
-			return 0;
-		}
-	}
-
-	if (q_class[0]->getPackets() > 0)
-	{
-		if (!q_class[0]->m_queue.empty())
-		{
+      
 			return 1;
 		}
-	}
+		if (!q_class[0]->m_queue.empty() && !m_serve_queue2)
+		{
+     
+			return 0;
+		}
 
-	if (!q_class[1]->m_queue.empty())
-	{
-		return 0;
-	}
-
-	if (!q_class[0]->m_queue.empty())
-	{
-		return 1;
-	}
-
-	return -1;
+	return 2;
 }
 
 
 void DeficitRoundRobin::schedule(Ptr<QueueItem> p){
-
-  return;
+  // uint16_t queueToBeServed = GetQueueToBePeeked();
+  // if (queueToBeServed == 1){
+  //   return 1;
+  // }
+  // else if (queueToBeServed)
 }
 
 } // namespace ns3

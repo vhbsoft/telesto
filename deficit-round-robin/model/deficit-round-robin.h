@@ -16,6 +16,7 @@ class TraceContainer;
 class DeficitRoundRobin: public BaseClass {
 public:
 	static TypeId GetTypeId(void);
+	bool m_serve_queue2;
 
 	DeficitRoundRobin();
 	~DeficitRoundRobin();
@@ -43,7 +44,6 @@ private:
 	uint32_t m_highMaxBytes;
 	uint32_t m_lowMaxBytes;
 
-	bool m_serve_queue2;
 	uint16_t  m_first_dc;
 	uint16_t  m_second_dc;
         
