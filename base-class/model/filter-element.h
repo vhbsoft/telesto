@@ -12,6 +12,8 @@
 #include "ns3/tcp-header.h"
 #include "ns3/ipv4-header.h"
 
+#include "ns3/queue-item.h"
+
 
 namespace ns3{
 //virtual class filterelement

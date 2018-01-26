@@ -12,7 +12,7 @@
 
 namespace ns3 {
 
-class BaseClass: public Queue{
+class BaseClass: public QueueBase{
         protected:
                 BaseClass::QueueMode m_mode;
                 std::vector<TrafficClass*> q_class;
