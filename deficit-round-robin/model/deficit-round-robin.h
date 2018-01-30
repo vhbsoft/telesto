@@ -16,7 +16,6 @@ class TraceContainer;
 class DeficitRoundRobin: public BaseClass {
 public:
 	static TypeId GetTypeId(void);
-	bool m_serve_queue2;
 
 	DeficitRoundRobin();
 	~DeficitRoundRobin();
@@ -34,8 +33,7 @@ private:
 	int32_t GetQueueToBePeeked() const;
 	void schedule(Ptr<QueueItem> p);
 
-	uint32_t quantumSize1;
-	uint32_t quantumSize2;
+	uint32_t quantumSize;
 	uint32_t m_priorityPort;
 
 	uint32_t m_highMaxPackets;
@@ -44,6 +42,7 @@ private:
 	uint32_t m_highMaxBytes;
 	uint32_t m_lowMaxBytes;
 
+	bool m_serve_queue2;
 	uint16_t  m_first_dc;
 	uint16_t  m_second_dc;
         

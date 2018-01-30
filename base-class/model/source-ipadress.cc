@@ -18,12 +18,12 @@ SourceIPAddress::SourceIPAddress(Ipv4Address num){
 }
 
 
-bool SourceIPAddress::match(Ptr<QueueItem> p){
+bool SourceIPAddress::match(Ptr<ns3::Packet> p){
 	bool matching = false;
 	Ipv4Header ip;
-	p->GetPacket()->RemoveHeader(ip);
+	p->RemoveHeader(ip);
 	matching = (value == ip.GetSource());
-	p->GetPacket()->AddHeader(ip);
+	p->AddHeader(ip);
 	return matching;
 }
 

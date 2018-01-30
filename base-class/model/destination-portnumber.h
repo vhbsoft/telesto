@@ -13,7 +13,7 @@ class DestinationPortNumber : public FilterElement{
 	
 	public:
 		DestinationPortNumber(uint32_t num);
-		bool match(Ptr<QueueItem> p);
+		bool match(Ptr<ns3::Packet> p);
 
 };
 

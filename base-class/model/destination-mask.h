@@ -13,7 +13,7 @@ class DestinationMask: public FilterElement{
 		Ipv4Mask value;
 	public:
 		DestinationMask(Ipv4Mask num);
-		bool match(Ptr<QueueItem> p);
+		bool match(Ptr<ns3::Packet> p);
 	
 
 };

@@ -260,14 +260,14 @@ void CustomPacketSink::CalculateBandwidth()
 	m_bandwidth_Calculation_Event = Simulator::Schedule (m_bandwidthCalculationInterval, &CustomPacketSink::CalculateBandwidth, this);
 
 	// Calculating bandwidth based on total perceived bandwidth
-	//std::ofstream outputT;
-	//outputT.open(("T-"+m_receiverName).c_str(), std::ofstream::app);
-	//outputT << Simulator::Now().GetSeconds() << "	" << double(m_totalRx * 8)/ (Simulator::Now().GetSeconds()) << std::endl;
+	std::ofstream outputT;
+	outputT.open(("T-"+m_receiverName).c_str(), std::ofstream::app);
+	outputT << Simulator::Now().GetSeconds() << "	" << double(m_totalRx * 8)/ (Simulator::Now().GetSeconds()) << std::endl;
 	//m_output.close();
 
 //------------------------
 
- 	
+ 	/*
  	// Calculating bandwidth based on last 'n' intervals
  	m_round++;
 	if (m_round == n)
@@ -280,11 +280,11 @@ void CustomPacketSink::CalculateBandwidth()
 	{
 		last_n_intervals_sum = last_n_intervals_sum + m_last_n_intervals_data[i];
 	}
-  if(m_round == n-1){
-  	std::ofstream outputP;
-  	outputP.open(("P-"+m_receiverName).c_str(), std::ofstream::app);
-  	outputP << Simulator::Now().GetSeconds() << "	" << double(last_n_intervals_sum * 8)/(m_bandwidthCalculationInterval.GetSeconds() * n) << std::endl;
-  }
+
+	std::ofstream outputP;
+	outputP.open(("P-"+m_receiverName).c_str(), std::ofstream::app);
+	outputP << Simulator::Now().GetSeconds() << "	" << double(last_n_intervals_sum * 8)/(m_bandwidthCalculationInterval.GetSeconds() * n) << std::endl;
+	*/
 }
 
 } // Namespace ns3

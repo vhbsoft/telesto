@@ -14,56 +14,20 @@
 #include "ns3/udp-header.h"
 #include "ns3/tcp-header.h"
 #include "ns3/ipv4-header.h"
-#include <stdio.h>
+
 #include <math.h>
 
-NS_LOG_COMPONENT_DEFINE("DeficitRoundRobin");
+//NS_LOG_COMPONENT_DEFINE("DeficitRoundRobin");
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED(DeficitRoundRobin);
-
-DeficitRoundRobin::DeficitRoundRobin(): BaseClass(){
-  quantumSize1 = 1000;
-  quantumSize2 = 1000;
-  m_priorityPort = 3000;
-
-  m_highMaxPackets = 100;
-  m_lowMaxPackets = 100;
-
-  m_highMaxBytes = 100*65535;
-  m_lowMaxBytes = 100*65535;
-
-  m_serve_queue2 = false;
-  m_first_dc = 0;
-  m_second_dc = 0;
-  
-  q_class.push_back(new TrafficClass());
-  q_class.push_back(new TrafficClass());
-
-
-  q_class[0]->setBytes(0);                    //initialize
-  q_class[1]->setBytes(0);                    //initialize
-  q_class[0]->setPackets(0);
-  q_class[1]->setPackets(0);
-  q_class[0]->setMaxPackets(m_highMaxPackets);//Custom settings
-  q_class[1]->setMaxPackets(m_lowMaxPackets); //Custom settings
-  q_class[0]->setMaxBytes(m_highMaxBytes);    //Custom settings
-  q_class[1]->setMaxBytes(m_lowMaxBytes);     //Custom settings
-  DestinationPortNumber * prioPN = new DestinationPortNumber(m_priorityPort); 
-
-  Filter * fil = new Filter();
-  fil->set_element(prioPN);
-  q_class[0]->filters.push_back(fil);
-
-  NS_LOG_FUNCTION_NOARGS ();
-}
+//NS_OBJECT_ENSURE_REGISTERED(DeficitRoundRobin);
 
 TypeId DeficitRoundRobin::GetTypeId(void) {
 	static TypeId tid = TypeId("ns3::DeficitRoundRobin")
      .SetParent<BaseClass> ()
      .AddConstructor<DeficitRoundRobin> ()
-     .AddAttribute ("DRRMode",
+     .AddAttribute ("Mode",
                     "Whether to use bytes (see MaxBytes) or packets (see MaxPackets) as the maximum queue size metric.",
                    EnumValue (QUEUE_MODE_PACKETS),
                    MakeEnumAccessor (&DeficitRoundRobin::SetMode),
@@ -98,44 +62,63 @@ TypeId DeficitRoundRobin::GetTypeId(void) {
                    UintegerValue (3000),
                    MakeUintegerAccessor (&DeficitRoundRobin::m_priorityPort),
                    MakeUintegerChecker<uint32_t> ())
-      .AddAttribute("QuantumSize1",
+      .AddAttribute("QuantumSize",
                   "The packet size permitted for each queue",
-                  UintegerValue(1000),
-                  MakeUintegerAccessor(&DeficitRoundRobin::quantumSize1),
-                  MakeUintegerChecker<uint32_t>())
-
-      .AddAttribute("QuantumSize2",
-                  "The packet size permitted for each queue",
-                  UintegerValue(1000),
-                  MakeUintegerAccessor(&DeficitRoundRobin::quantumSize2),
+                  UintegerValue(1),
+                  MakeUintegerAccessor(&DeficitRoundRobin::quantumSize),
                   MakeUintegerChecker<uint32_t>());
 	return tid;
 }
 
+DeficitRoundRobin::DeficitRoundRobin(): BaseClass(){
+  this->m_serve_queue2 = false;
+  this->m_highMaxPackets = 100;
+  this->m_lowMaxPackets = 100;
+  this->m_highMaxBytes = 100*65535;
+  this->m_lowMaxBytes = 100*65535;
+  this->m_priorityPort = 3000;
 
+
+  q_class[0] = new TrafficClass;              //initialize high priority queue
+  q_class[1] = new TrafficClass;              //initialize low  priority queue
+  q_class[0]->setBytes(0);                    //initialize
+  q_class[1]->setBytes(0);                    //initialize
+  q_class[0]->setMaxPackets(m_highMaxPackets);//Custom settings
+  q_class[1]->setMaxPackets(m_lowMaxPackets); //Custom settings
+  q_class[0]->setMaxBytes(m_highMaxBytes);    //Custom settings
+  q_class[1]->setMaxBytes(m_lowMaxBytes);     //Custom settings
+  DestinationPortNumber * prioPN = new DestinationPortNumber(m_priorityPort); 
+
+  Filter * fil;
+  fil->set_element(prioPN);
+  q_class[0]->filters.push_back(fil);
+
+
+  //NS_LOG_FUNCTION_NOARGS ();
+}
 
 DeficitRoundRobin::~DeficitRoundRobin() {
-	NS_LOG_FUNCTION_NOARGS ();
+	//NS_LOG_FUNCTION_NOARGS ();
 }
 
 
 void
 DeficitRoundRobin::SetMode (DeficitRoundRobin::QueueMode mode)
 {
-  NS_LOG_FUNCTION (mode);
+  //NS_LOG_FUNCTION (mode);
   m_mode = mode;
 }
 
 DeficitRoundRobin::QueueMode
 DeficitRoundRobin::GetMode (void)
 {
-  NS_LOG_FUNCTION_NOARGS ();
+  //NS_LOG_FUNCTION_NOARGS ();
   return m_mode;
 }
 
 
 
-uint16_t DeficitRoundRobin::classify(Ptr<QueueItem> p) {
+uint16_t DeficitRoundRobin::classify(Ptr<ns3::Packet> p) {
 
    uint16_t weightedQueue;
    if(q_class[0]->filters[0]->element[0]->match(p))
@@ -148,40 +131,30 @@ uint16_t DeficitRoundRobin::classify(Ptr<QueueItem> p) {
 
 
 
-bool DeficitRoundRobin::DoEnqueue(Ptr<QueueItem> p) {
-	NS_LOG_FUNCTION(this << p);
+bool DeficitRoundRobin::DoEnqueue(Ptr<ns3::Packet> p) {
+	//NS_LOG_FUNCTION(this << p);
 
 	uint16_t weightedQueue = classify(p);
-  
+
 	// Second Queue
 	if (weightedQueue == 1) {
 		if (m_mode == QUEUE_MODE_PACKETS
 				&& (q_class[0]->m_queue.size() >= q_class[0]->getMaxPackets())) {
-			NS_LOG_LOGIC("Queue full (at max packets) -- dropping pkt");
-			Drop(p->GetPacket());
-        printf("Checkpoint1\n");
-
+			//NS_LOG_LOGIC("Queue full (at max packets) -- dropping pkt");
+			DoRemove(p);
 			return false;
 		}
 
 		if (m_mode == QUEUE_MODE_BYTES
-				&& (q_class[0]->getBytes() + p->GetPacket()->GetSize() >= q_class[0]->getMaxBytes())) {
-			NS_LOG_LOGIC(
-					"Queue full (packet would exceed max bytes) -- dropping pkt");
-			Drop(p->GetPacket());
-        printf("Checkpoint2\n");
-
+				&& (q_class[0]->getBytes() + p->GetSize() >= q_class[0]->getMaxBytes())) {
+			//NS_LOG_LOGIC("Queue full (packet would exceed max bytes) -- dropping pkt");
+			DoRemove(p);
 			return false;
 		}
 
-		q_class[0]->setBytes(q_class[0]->getBytes() + (10 * p->GetPacket()->GetSize()));
-    q_class[0]->setPackets(q_class[0]->getPackets() + 10);
-    for(int i = 0; i < 10; i++)
-		  q_class[0]->m_queue.push(p);
-    NS_LOG_LOGIC("Q0] Number packets " << q_class[0]->getPackets());
-    NS_LOG_LOGIC("Q0] Number bytes " << q_class[0]->getBytes());
+		q_class[0]->setBytes(q_class[0]->getBytes() + p->GetSize());
+		q_class[0]->m_queue.push(p);
 
-  printf("Checkpoint3\n");
 
 		return true;
 	}
@@ -190,202 +163,132 @@ bool DeficitRoundRobin::DoEnqueue(Ptr<QueueItem> p) {
 	else if (weightedQueue == 0) {
 		if (m_mode == QUEUE_MODE_PACKETS
 				&& (q_class[1]->m_queue.size() >= q_class[1]->getMaxPackets())) {
-			NS_LOG_LOGIC("Queue full (at max packets) -- dropping pkt");
-			Drop(p->GetPacket());
-        printf("Checkpoint4\n");
-
+			//NS_LOG_LOGIC("Queue full (at max packets) -- dropping pkt");
+			DoRemove(p);
 			return false;
 		}
 
 		if (m_mode == QUEUE_MODE_BYTES
 				&& (q_class[1]->getBytes() + p->GetPacket()->GetSize() >= q_class[1]->getMaxBytes())) {
-			NS_LOG_LOGIC(
-					"Queue full (packet would exceed max bytes) -- dropping pkt");
-			Drop(p->GetPacket());
-        printf("Checkpoint5\n");
-
+			//NS_LOG_LOGIC("Queue full (packet would exceed max bytes) -- dropping pkt");
+			DoRemove(p);
 			return false;
 		}
 
+    q_class[1]->setBytes(q_class[1]->getBytes() + p->GetSize());
+		q_class[1]->m_queue.push(p);
 
-    q_class[1]->setBytes(q_class[1]->getBytes() + (10 * p->GetPacket()->GetSize()));
-    q_class[1]->setPackets(q_class[1]->getPackets() + 10);
-    for(int i = 0; i < 10; i++)
-		  q_class[1]->m_queue.push(p);
-    NS_LOG_LOGIC("Q1] Number packets " << q_class[0]->getPackets());
-    NS_LOG_LOGIC("Q1] Number bytes " << q_class[0]->getBytes());
-    printf("Checkpoint6\n");
+		////NS_LOG_LOGIC("Number packets " << m_firstQueue.size ());
+		////NS_LOG_LOGIC("Number bytes " << m_bytesInFirstQueue);
 
 		return true;
 	}
 
 	// This normally never happens unless Classify() has been changed
 	else {
-      printf("Checkpoint7\n");
-
 		return false;
 	}
 }
 
 
 
-Ptr<QueueItem> DeficitRoundRobin::DoDequeue(void) {
-	NS_LOG_FUNCTION(this);
-    // if(!q_class[1]->m_queue.empty() || !q_class[0]->m_queue.empty()){
+Ptr<ns3::Packet> DeficitRoundRobin::DoDequeue(void) {
+	//NS_LOG_FUNCTION(this);
 
-    //     if (!(q_class[1]->m_queue.empty()) && !m_serve_queue2) { //Check == false
-
-    //             m_first_dc += quantumSize1;
-    //             Ptr<QueueItem> packet1 = q_class[1]->m_queue.front();
-    //             NS_LOG_LOGIC("-------------------Queue1 is being served-----------------------");
-    //             NS_LOG_LOGIC("Number bytes in first queue1 " << q_class[1]->getBytes());
-    //             NS_LOG_LOGIC("Defecit Counter Queue1 before " << m_first_dc);
-    //            if(packet1->GetPacket()->GetSize() < m_first_dc){
-    //                     q_class[1]->setBytes(q_class[1]->getBytes() - packet1->GetPacket()->GetSize());
-    //                     q_class[1]->m_queue.pop();
-    //                     m_first_dc -= packet1->GetPacket()->GetSize();
+    if(!q_class[1]->m_queue.empty() || !q_class[0]->m_queue.empty()){
+        if (!q_class[1]->m_queue.empty() && !m_serve_queue2) { //Check == false
+                m_first_dc += quantumSize;
+                Ptr<ns3::Packet> packet1 = q_class[1]->m_queue.front();
+                //NS_LOG_LOGIC("-------------------Queue1 is being served-----------------------");
+                //NS_LOG_LOGIC("Number bytes in first queue1 " << q_class[1]->getBytes());
+                //NS_LOG_LOGIC("Defecit Counter Queue1 before " << m_first_dc);
+               if(packet1->GetSize() < m_first_dc){
+                        q_class[1]->setBytes(q_class[1]->getBytes() - packet1->GetSize());
+                        q_class[1]->m_queue.pop();
+                        m_first_dc -= packet1->GetSize();
                         
-    //             }
+                }
                 
-    //             if(q_class[1]->m_queue.empty()){
-    //             	m_first_dc = 0;
-    //             }
+                if(q_class[1]->m_queue.empty()){
+                	m_first_dc = 0;
+                }
     
                 
-    //             NS_LOG_LOGIC("Number packets " << q_class[1]->m_queue.size ());
-    //             NS_LOG_LOGIC("Packet SIze " << packet1->GetPacket()->GetSize());
-    //             NS_LOG_LOGIC("Number bytes in first queue2 " << q_class[1]->getBytes());
+                //NS_LOG_LOGIC("Number packets " << q_class[1]->m_queue.size ());
+                //NS_LOG_LOGIC("Packet SIze " << packet1->GetPacket()->GetSize());
+                //NS_LOG_LOGIC("Number bytes in first queue2 " << q_class[1]->getBytes());
                 
                 
 
-    //             m_serve_queue2 = true;
-    //             NS_LOG_LOGIC("Defecit Counter Queue1 After " << m_first_dc);
-    //             return new QueueItem(packet1->GetPacket());
-    //     }
+                m_serve_queue2 = true;
+                //NS_LOG_LOGIC("Defecit Counter Queue1 After " << m_first_dc);
+                return new ns3::Packet(packet1->GetPacket());
+        }
 
-    //     else if(!q_class[0]->m_queue.empty()){
-    //       printf("Checkpoint1\n");
-
-    //       if(m_serve_queue2) { //check == true
-
-    //             m_second_dc += quantumSize2;
-    //             Ptr<QueueItem> packet2 = q_class[0]->m_queue.front();
-    //             NS_LOG_LOGIC("------------------Queue2 is being served-------------------------");                
-    //             NS_LOG_LOGIC("Defecit Counter Queue2 before" << m_second_dc);                
-    //             if(packet2->GetPacket()->GetSize() < m_second_dc){
-    //                     q_class[0]->setBytes(q_class[0]->getBytes() - packet2->GetPacket()->GetSize());
-    //                     q_class[0]->m_queue.pop();
-    //                     m_second_dc -= packet2->GetPacket()->GetSize();
+        else if(!q_class[0]->m_queue.empty() && m_serve_queue2) { //check == true
+                m_second_dc += quantumSize;
+                Ptr<ns3::Packet> packet2 = q_class[0]->m_queue.front();
+                //NS_LOG_LOGIC("------------------Queue2 is being served-------------------------");                
+                //NS_LOG_LOGIC("Defecit Counter Queue2 before" << m_second_dc);                
+                if(packet2->GetSize() < m_second_dc){
+                        q_class[0]->setBytes(q_class[0]->getBytes() - packet2->GetSize());
+                        q_class[0]->m_queue.pop();
+                        m_second_dc -= packet2->GetSize();
                         
-    //             }
+                }
 
                 
-    //             if(q_class[0]->m_queue.empty()){
-    //                     m_second_dc = 0;
-    //             }
+                //if(m_secondQueue.empty()){
+                  //      m_second_dc = 0;
+                //}
 
-    //             NS_LOG_LOGIC("Number packets " << q_class[0]->m_queue.size ());
-    //             NS_LOG_LOGIC("Packet SIZE " << packet2->GetPacket()->GetSize()); 
-    //             NS_LOG_LOGIC("Number bytes in second Queue " << q_class[0]->getBytes());
+                //NS_LOG_LOGIC("Number packets " << q_class[0]->m_queue.size ());
+                //NS_LOG_LOGIC("Packet SIZE " << packet2->GetPacket()->GetSize()); 
+                //NS_LOG_LOGIC("Number bytes in second Queue " << q_class[0]->getBytes());
                                
 
-    //             m_serve_queue2=false;
-    //             NS_LOG_LOGIC("Defecit Counter Queue2 After" << m_second_dc);
-    //             return new QueueItem(packet2->GetPacket());
-    //       }
-    //       printf("Checkpoint2\n");
-    //     }
-    //     printf("Checkpoint777\n");
-    //     return 0;
-
-    // }else{
-
-		  // NS_LOG_LOGIC("all queues empty");
-		  // return 0;
-    // }
-    uint16_t queueToBeServed = GetQueueToBePeeked();
-    bool served = false;
-    //bool servedQ0 = false;
-    Ptr<QueueItem> result;
-    while(!served){
-      printf("looping\n");
-      if(queueToBeServed != 2){
-        if (queueToBeServed == 0){
-          m_first_dc += quantumSize1;
-          Ptr<QueueItem> p1 = q_class[0]->m_queue.front();
-          if(p1->GetPacket()->GetSize() < m_first_dc){
-            q_class[0]->m_queue.pop();
-            m_first_dc -= p1->GetPacket()->GetSize();
-            q_class[0]->setBytes(q_class[0]->getBytes() - p1->GetPacket()->GetSize());
-            q_class[0]->setPackets(q_class[0]->getPackets() - 1);
-            NS_LOG_LOGIC("Q0] Popped " << p1);
-            NS_LOG_LOGIC("Q0] Number packets " << q_class[0]->getPackets());
-            NS_LOG_LOGIC("Q0] Number bytes " << q_class[0]->getBytes());
-          }
-          if(q_class[0]->m_queue.empty())
-            m_first_dc = 0;
-          result =  new QueueItem(p1->GetPacket());
-          served = true;
-          m_serve_queue2 = false;
-
-        }else{
-          m_second_dc += quantumSize2;
-          Ptr<QueueItem> p1 = q_class[1]->m_queue.front();
-          if(p1->GetPacket()->GetSize() < m_second_dc){
-            q_class[1]->m_queue.pop();
-            m_second_dc -= p1->GetPacket()->GetSize();
-            q_class[1]->setBytes(q_class[1]->getBytes() - p1->GetPacket()->GetSize());
-            q_class[1]->setPackets(q_class[1]->getPackets() - 1);
-            NS_LOG_LOGIC("Q0] Popped " << p1);
-            NS_LOG_LOGIC("Q0] Number packets " << q_class[1]->getPackets());
-            NS_LOG_LOGIC("Q0] Number bytes " << q_class[1]->getBytes());
-          }
-          if(q_class[1]->m_queue.empty())
-            m_second_dc = 0;
-          result =  new QueueItem(p1->GetPacket());
-          served = true;
-          m_serve_queue2 = true;
+                m_serve_queue2=false;
+                //NS_LOG_LOGIC("Defecit Counter Queue2 After" << m_second_dc);
+                return new ns3::Packet(packet2);
         }
-      }
-    }//end while
-      //NS_LOG_LOGIC("all queues does not satisfy condition to be served");
-    //}else{
-      if(served)
-        return result;
-      else{
-        NS_LOG_LOGIC("all queues empty");
-        return NULL;
-      }
-    
+        else
+                return NULL;
+    }
+
+    else{
+
+		//NS_LOG_LOGIC("all queues empty");
+		return NULL;
+    }
 }
 
 
 
-Ptr<const QueueItem> DeficitRoundRobin::DoPeek(void) const {
-	NS_LOG_FUNCTION(this);
+Ptr<const ns3::Packet> DeficitRoundRobin::DoPeek(void) const {
+	//NS_LOG_FUNCTION(this);
 
 	int32_t queueToBeServed = GetQueueToBePeeked();
 
-	if (queueToBeServed == 1) {
+	if (queueToBeServed == 0) {
 
 		Ptr<Packet> pack1 = q_class[1]->m_queue.front()->GetPacket();
-		NS_LOG_LOGIC("Number packets " << q_class[1]->m_queue.size ());
-		NS_LOG_LOGIC("Number bytes " << q_class[1]->getBytes());
+		//NS_LOG_LOGIC("Number packets " << q_class[1]->m_queue.size ());
+		//NS_LOG_LOGIC("Number bytes " << q_class[1]->getBytes());
                 
-		return new QueueItem(pack1);
+		return new ns3::Packet(pack1);
 	}
 
-	else if (queueToBeServed == 0) {
+	else if (queueToBeServed == 1) {
 
 		Ptr<Packet> pack2 = q_class[0]->m_queue.front()->GetPacket();
-		NS_LOG_LOGIC("Number packets " << q_class[0]->m_queue.size ());
-		NS_LOG_LOGIC("Number bytes " << q_class[1]->getBytes());
+		//NS_LOG_LOGIC("Number packets " << q_class[0]->m_queue.size ());
+		//NS_LOG_LOGIC("Number bytes " << q_class[1]->getBytes());
 
-		return new QueueItem(pack2);
+		return new ns3::Packet(pack2);
 	}
 
 	else {
-		NS_LOG_LOGIC("all queues empty");
+		//NS_LOG_LOGIC("all queues empty");
 		return 0;
 	}
 }
@@ -393,27 +296,39 @@ Ptr<const QueueItem> DeficitRoundRobin::DoPeek(void) const {
 
 int32_t DeficitRoundRobin::GetQueueToBePeeked() const
 {
-		if (!q_class[1]->m_queue.empty() && m_serve_queue2)
+	if (q_class[1]->getPackets() > 0)
+	{
+		if (!q_class[1]->m_queue.empty())
 		{
-      
-			return 1;
-		}
-		if (!q_class[0]->m_queue.empty() && !m_serve_queue2)
-		{
-     
 			return 0;
 		}
+	}
 
-	return 2;
+	if (q_class[0]->getPackets() > 0)
+	{
+		if (!q_class[0]->m_queue.empty())
+		{
+			return 1;
+		}
+	}
+
+	if (!q_class[1]->m_queue.empty())
+	{
+		return 0;
+	}
+
+	if (!q_class[0]->m_queue.empty())
+	{
+		return 1;
+	}
+
+	return -1;
 }
 
 
-void DeficitRoundRobin::schedule(Ptr<QueueItem> p){
-  // uint16_t queueToBeServed = GetQueueToBePeeked();
-  // if (queueToBeServed == 1){
-  //   return 1;
-  // }
-  // else if (queueToBeServed)
+void DeficitRoundRobin::schedule(Ptr<ns3::Packet> p){
+
+  return;
 }
 
 } // namespace ns3
