@@ -22,27 +22,39 @@ BaseClass::QueueMode BaseClass::getMode(void){
 }
 
 
-bool BaseClass:: Enqueue(Ptr<QueueItem> p){
+bool BaseClass:: Enqueue(Ptr<ns3::Packet> p){
       return DoEnqueue(p);
 }
 
-Ptr<QueueItem> BaseClass:: Dequeue(void){
+Ptr<ns3::Packet> BaseClass:: Dequeue(void){
         return DoDequeue();
 }
 
 
-bool BaseClass:: DoEnqueue(Ptr<QueueItem> p){
+bool BaseClass:: DoEnqueue(Ptr<ns3::Packet> p){
 
         return true;
 }
 
 
-Ptr<QueueItem> BaseClass:: DoDequeue(void){
+Ptr<ns3::Packet> BaseClass:: DoDequeue(void){
 
         return 0;
 
 }
 
+
+Ptr<ns3::Packet> BaseClass:: Remove (void){
+
+	return 0;
+}
+
+
+
+Ptr<const ns3::Packet> BaseClass:: Peek (void) const{
+
+	return 0;
+}
 
 
 

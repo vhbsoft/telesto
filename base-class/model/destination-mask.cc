@@ -11,9 +11,9 @@ DestinationMask::DestinationMask(Ipv4Mask num){
 }
 
 
-bool DestinationMask::match(Ptr<QueueItem> p){
+bool DestinationMask::match(Ptr<ns3::Packet> p){
 	Ipv4Header ip;
-	p->GetPacket()->RemoveHeader(ip);
+	p->RemoveHeader(ip);
 	return 0;
 }
 

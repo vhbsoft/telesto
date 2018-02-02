@@ -14,7 +14,7 @@ class SourceMask: public FilterElement{
 	
 	public:
 		SourceMask(Ipv4Mask num);
-		bool match(Ptr<QueueItem> p);
+		bool match(Ptr<ns3::Packet> p);
 
 };
 
