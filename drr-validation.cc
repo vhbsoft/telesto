@@ -36,7 +36,7 @@
 #include "ns3/applications-module.h"
 #include "ns3/network-module.h"
 #include "ns3/custom-packet-sink.h"
-#include "ns3/priority-queue.h"
+#include "ns3/deficit-round-robin.h"
 #include "ns3/flow-monitor.h"
 #include "ns3/flow-monitor-helper.h"
 #include "ns3/packet-sink.h"
@@ -366,7 +366,7 @@ main (int argc, char *argv[])
       p2p.EnableAscii (ascii.CreateFileStream ("drr-r1.tr"), R1);
       p2p.EnableAscii (ascii.CreateFileStream ("drr-r2.tr"), R2);
 
-	  p2p.EnablePcap (DEFAULT_DATARATE+"-w"+"-DRR1", R1, false);
+	  	p2p.EnablePcap (DEFAULT_DATARATE+"-w"+"-DRR1", R1, false);
       p2p.EnablePcap (DEFAULT_DATARATE+"-w"+"-DRR2", R2, false);
 
       //p2p.EnablePcap (DEFAULT_DATARATE+"-w"+w+"-N2", N2, false);
