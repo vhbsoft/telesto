@@ -17,56 +17,23 @@
 
 #include <math.h>
 
-//NS_LOG_COMPONENT_DEFINE("DeficitRoundRobin");
+NS_LOG_COMPONENT_DEFINE("DeficitRoundRobin");
 
 namespace ns3 {
 
-//(DeficitRoundRobin);
-
-DeficitRoundRobin::DeficitRoundRobin(): BaseClass(){
-
-  this->m_serve_queue2 = false;
-  this->m_highMaxPackets = 100;
-  this->m_lowMaxPackets = 100;
-  this->m_highMaxBytes = 100*65535;
-  this->m_lowMaxBytes = 100*65535;
-  this->m_priorityPort = 3000;
-
-
-  q_class[0] = new TrafficClass;              //initialize high priority queue
-  q_class[1] = new TrafficClass;              //initialize low  priority queue
-  q_class[0]->setBytes(0);                    //initialize
-  q_class[1]->setBytes(0);                    //initialize
-  q_class[0]->setMaxPackets(m_highMaxPackets);//Custom settings
-  q_class[1]->setMaxPackets(m_lowMaxPackets); //Custom settings
-  q_class[0]->setMaxBytes(m_highMaxBytes);    //Custom settings
-  q_class[1]->setMaxBytes(m_lowMaxBytes);     //Custom settings
-  DestinationPortNumber * prioPN = new DestinationPortNumber(m_priorityPort); 
-
-  Filter * fil;
-  fil->set_element(prioPN);
-  q_class[0]->filters.push_back(fil);
-
-
-  //NS_LOG_FUNCTION_NOARGS ();
-}
-
-
-DeficitRoundRobin::~DeficitRoundRobin() {
-	//NS_LOG_FUNCTION_NOARGS ();
-}
+NS_OBJECT_ENSURE_REGISTERED(DeficitRoundRobin);
 
 
 TypeId DeficitRoundRobin::GetTypeId(void) {
 	static TypeId tid = TypeId("ns3::DeficitRoundRobin")
      .SetParent<BaseClass> ()
      .AddConstructor<DeficitRoundRobin> ()
-     .AddAttribute ("Mode",
-                    "Whether to use bytes (see MaxBytes) or packets (see MaxPackets) as the maximum queue size metric.",
-                   EnumValue (QUEUE_MODE_PACKETS),
-                   MakeEnumAccessor (&DeficitRoundRobin::SetMode),
-                   MakeEnumChecker (QUEUE_MODE_BYTES, "QUEUE_MODE_BYTES",
-                                    QUEUE_MODE_PACKETS, "QUEUE_MODE_PACKETS"))
+     // .AddAttribute ("Mode",
+     //                "Whether to use bytes (see MaxBytes) or packets (see MaxPackets) as the maximum queue size metric.",
+     //               EnumValue (QUEUE_MODE_PACKETS),
+     //               MakeEnumAccessor (&DeficitRoundRobin::SetMode),
+     //               MakeEnumChecker (QUEUE_MODE_BYTES, "QUEUE_MODE_BYTES",
+     //                                QUEUE_MODE_PACKETS, "QUEUE_MODE_PACKETS"))
     .AddAttribute ("HighPriorityMaxPackets",
                    "The maximum number of packets accepted by the high priority queue.",
                    UintegerValue (100),
@@ -102,6 +69,40 @@ TypeId DeficitRoundRobin::GetTypeId(void) {
                   MakeUintegerAccessor(&DeficitRoundRobin::quantumSize),
                   MakeUintegerChecker<uint32_t>());
 	return tid;
+}
+
+
+DeficitRoundRobin::DeficitRoundRobin(): BaseClass(){
+
+  this->m_serve_queue2 = false;
+  this->m_highMaxPackets = 100;
+  this->m_lowMaxPackets = 100;
+  this->m_highMaxBytes = 100*65535;
+  this->m_lowMaxBytes = 100*65535;
+  this->m_priorityPort = 3000;
+
+
+  q_class[0] = new TrafficClass;              //initialize high priority queue
+  q_class[1] = new TrafficClass;              //initialize low  priority queue
+  q_class[0]->setBytes(0);                    //initialize
+  q_class[1]->setBytes(0);                    //initialize
+  q_class[0]->setMaxPackets(m_highMaxPackets);//Custom settings
+  q_class[1]->setMaxPackets(m_lowMaxPackets); //Custom settings
+  q_class[0]->setMaxBytes(m_highMaxBytes);    //Custom settings
+  q_class[1]->setMaxBytes(m_lowMaxBytes);     //Custom settings
+  DestinationPortNumber * prioPN = new DestinationPortNumber(m_priorityPort); 
+
+  Filter * fil;
+  fil->set_element(prioPN);
+  q_class[0]->filters.push_back(fil);
+
+
+  //NS_LOG_FUNCTION_NOARGS ();
+}
+
+
+DeficitRoundRobin::~DeficitRoundRobin() {
+	//NS_LOG_FUNCTION_NOARGS ();
 }
 
 
