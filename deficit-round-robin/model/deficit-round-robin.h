@@ -14,24 +14,26 @@ namespace ns3 {
 class TraceContainer;
 
 class DeficitRoundRobin: public BaseClass {
-public:
-	static TypeId GetTypeId(void);
 
+public:
+
+	static TypeId GetTypeId(void);
 	DeficitRoundRobin();
 	~DeficitRoundRobin();
-
-  	void SetMode(DeficitRoundRobin::QueueMode mode);
+	void SetMode(DeficitRoundRobin::QueueMode mode);
 	DeficitRoundRobin::QueueMode GetMode (void);
-
 
 private:
 
-	bool DoEnqueue(Ptr<QueueItem> p);
-	Ptr<QueueItem> DoDequeue(void);
-	Ptr<const QueueItem> DoPeek(void) const;
-	uint16_t classify(Ptr<QueueItem> p);
-	int32_t GetQueueToBePeeked() const;
-	void schedule(Ptr<QueueItem> p);
+  bool Enqueue(Ptr<ns3::Packet> p);
+  Ptr<ns3::Packet> Dequeue(void);
+  bool DoEnqueue(Ptr<ns3::Packet> p);
+  Ptr<ns3::Packet> DoDequeue(void);
+  void schedule(Ptr<ns3::Packet> p);
+  uint16_t classify(Ptr<ns3::Packet> p);
+  Ptr<ns3::Packet>  Remove (void);
+  Ptr<const ns3::Packet> Peek (void) const;
+  int32_t GetQueueToBePeeked() const;
 
 	uint32_t quantumSize;
 	uint32_t m_priorityPort;
