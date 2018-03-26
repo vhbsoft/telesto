@@ -237,9 +237,9 @@ Ptr<ns3::Packet> DeficitRoundRobin::DoDequeue(void) {
 	            
 	    }
 	    
-	    //if(m_secondQueue.empty()){
-	      //      m_second_dc = 0;
-	    //}
+	    if(q_class[0]->m_queue.empty()){
+      	m_second_dc = 0;
+	    }
 
 	    // NS_LOG_LOGIC("Number packets " << q_class[0]->m_queue.size ());
 	    // NS_LOG_LOGIC("Packet SIZE " << packet2->GetPacket()->GetSize()); 
