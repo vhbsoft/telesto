@@ -18,28 +18,28 @@ SourcePortNumber::SourcePortNumber(uint32_t num){
 }
 
 
-bool SourcePortNumber::match(Ptr<QueueItem> p){
+bool SourcePortNumber::match(Ptr<ns3::Packet> p){
 
 	bool matching = false;
 	PppHeader ppp;
-	p->GetPacket()->RemoveHeader(ppp);
+	p->RemoveHeader(ppp);
 	Ipv4Header ip;
-	p->GetPacket()->RemoveHeader(ip);
+	p->RemoveHeader(ip);
 	uint32_t protocol = ip.GetProtocol();
 	if (protocol == 17){
 		UdpHeader udp;
-		p->GetPacket()->PeekHeader(udp);
+		p->PeekHeader(udp);
 		matching = (value == udp.GetSourcePort());
 	}else if (protocol == 6){
 		TcpHeader tcp;
-		p->GetPacket()->PeekHeader(tcp);
+		p->PeekHeader(tcp);
 		matching = (value == tcp.GetSourcePort());
 	}else{
 		//NS_LOG_INFO("\tFilterElement::match(): unrecognized transport protocol");
 	}
 
-	p->GetPacket()->AddHeader(ip);
-	p->GetPacket()->AddHeader(ppp);
+	p->AddHeader(ip);
+	p->AddHeader(ppp);
 	return matching;
 }
 

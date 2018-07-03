@@ -39,8 +39,8 @@ class TrafficClass{
 		void setPriorityLevel(uint32_t num);
 		uint32_t getPriorityLevel();
 		void setIsDefault(bool check);
-		bool match(Ptr<QueueItem> p);
-		std::queue<Ptr<QueueItem> > m_queue;
+		bool match(Ptr<ns3::Packet> p);
+		std::queue<Ptr<ns3::Packet> > m_queue;
 		std::vector<ns3::Filter*> filters;
 		TrafficClass();
 

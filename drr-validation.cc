@@ -36,7 +36,7 @@
 #include "ns3/applications-module.h"
 #include "ns3/network-module.h"
 #include "ns3/custom-packet-sink.h"
-#include "ns3/priority-queue.h"
+#include "ns3/deficit-round-robin.h"
 #include "ns3/flow-monitor.h"
 #include "ns3/flow-monitor-helper.h"
 #include "ns3/packet-sink.h"
@@ -74,18 +74,18 @@ main (int argc, char *argv[])
   uint16_t R2port = 3001;
   uint32_t tcp_adu_size = 946;
 
-  uint32_t DEFAULT_DATA_BYTES = 1073741824; //1000000000;
+  uint32_t DEFAULT_DATA_BYTES = 1000000000;  //1073741824; //1000000000;
   uint32_t ftp1_data_bytes = DEFAULT_DATA_BYTES;
   uint32_t ftp2_data_bytes = DEFAULT_DATA_BYTES;
 
   double DEFAULT_START_TIME = 0.0;
-  double DEFAULT_END_TIME = 1000.0;
+  double DEFAULT_END_TIME = 100000.0;
 
   double simEndTime = DEFAULT_END_TIME;
 
   double ftpApp1StartTime = DEFAULT_START_TIME;
   double ftpApp1EndTime = DEFAULT_END_TIME;
-  double ftpApp2StartTime = DEFAULT_START_TIME+15;
+  double ftpApp2StartTime = DEFAULT_START_TIME;
   double ftpApp2EndTime = DEFAULT_END_TIME;
 
   double sinkApps1StartTime = DEFAULT_START_TIME;
@@ -100,10 +100,10 @@ main (int argc, char *argv[])
   std::string N2R1Delay = DEFAULT_DELAY;
   std::string N2R2Delay = DEFAULT_DELAY;
 
-  std::string DEFAULT_DATARATE = "10Mbps";
+  std::string DEFAULT_DATARATE = "40Mbps";
   std::string S1N1DataRate = DEFAULT_DATARATE;
   std::string S2N1DataRate = DEFAULT_DATARATE;
-  std::string N1N2DataRate = "5Mbps";
+  std::string N1N2DataRate = "30Mbps";
   std::string N2R1DataRate = DEFAULT_DATARATE;
   std::string N2R2DataRate = DEFAULT_DATARATE;
 
@@ -134,7 +134,7 @@ main (int argc, char *argv[])
   uint64_t totalExpectedBytes = ftp2_data_bytes;
 
   double bandwidthCalculationInterval = 0.010;
-  uint32_t quantumSize = 1000;
+  uint32_t quantumSize = 2500;
 
   //std::string w = static_cast<std::ostringstream*>( &(std::ostringstream() << int(round(secondWeight/firstWeight))) )->str();
 
@@ -366,7 +366,7 @@ main (int argc, char *argv[])
       p2p.EnableAscii (ascii.CreateFileStream ("drr-r1.tr"), R1);
       p2p.EnableAscii (ascii.CreateFileStream ("drr-r2.tr"), R2);
 
-	  p2p.EnablePcap (DEFAULT_DATARATE+"-w"+"-DRR1", R1, false);
+	  	p2p.EnablePcap (DEFAULT_DATARATE+"-w"+"-DRR1", R1, false);
       p2p.EnablePcap (DEFAULT_DATARATE+"-w"+"-DRR2", R2, false);
 
       //p2p.EnablePcap (DEFAULT_DATARATE+"-w"+w+"-N2", N2, false);

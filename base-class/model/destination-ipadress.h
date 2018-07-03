@@ -22,7 +22,7 @@ class DestinationIPAddress: public FilterElement{
 
 	public:
 		DestinationIPAddress(Ipv4Address num);
-		bool match(Ptr<QueueItem> p);
+		bool match(Ptr<ns3::Packet> p);
 };
 
 

@@ -226,12 +226,12 @@ void CustomPacketSink::HandleRead (Ptr<Socket> socket)
 
 
   // *********************
-  // temporary, should be removed later
-  if (m_totalRx >= m_totalExpectedRx) {
+  // // temporary, should be removed later
+  // if (m_totalRx >= m_totalExpectedRx) {
 
-	  std::cout << "Finished at " << Simulator::Now().GetSeconds() << std::endl;
-	  Simulator::Stop();
-  }
+	 //  std::cout << "Finished at " << Simulator::Now().GetSeconds() << std::endl;
+	 //  Simulator::Stop();
+  // }
   // *********************
 }
 
@@ -260,10 +260,11 @@ void CustomPacketSink::CalculateBandwidth()
 	m_bandwidth_Calculation_Event = Simulator::Schedule (m_bandwidthCalculationInterval, &CustomPacketSink::CalculateBandwidth, this);
 
 	// Calculating bandwidth based on total perceived bandwidth
-	// std::ofstream outputT;
-	// outputT.open(("T-"+m_receiverName).c_str(), std::ofstream::app);
-	// outputT << Simulator::Now().GetSeconds() << "	" << double(m_totalRx * 8)/ (Simulator::Now().GetSeconds()) << std::endl;
-	//m_output.close();
+	/*std::ofstream outputT;
+	outputT.open(("T-"+m_receiverName).c_str(), std::ofstream::app);
+	outputT << Simulator::Now().GetSeconds() << "	" << double(m_totalRx * 8)/ (Simulator::Now().GetSeconds()) << std::endl;
+	*/
+  //m_output.close();
 
 //------------------------
 
@@ -283,8 +284,8 @@ void CustomPacketSink::CalculateBandwidth()
 
 	std::ofstream outputP;
 	outputP.open(("P-"+m_receiverName).c_str(), std::ofstream::app);
-	outputP << Simulator::Now().GetSeconds() << "	" << double(last_n_intervals_sum * 8.0/1000.0)/(m_bandwidthCalculationInterval.GetSeconds() * n) << std::endl;
-
+  outputP << Simulator::Now().GetSeconds() << "	" << double(last_n_intervals_sum * 8)/(m_bandwidthCalculationInterval.GetSeconds() * n) << std::endl;
+	
 }
 
 } // Namespace ns3

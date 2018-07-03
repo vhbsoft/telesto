@@ -19,7 +19,7 @@ namespace ns3{
 //virtual class filterelement
 class FilterElement{
 	public:
-		virtual bool match(Ptr<QueueItem> p) = 0;
+		virtual bool match(Ptr<ns3::Packet> p) = 0;
 };
 
 

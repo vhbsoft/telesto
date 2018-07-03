@@ -23,6 +23,52 @@ namespace ns3 {
 
 NS_OBJECT_ENSURE_REGISTERED(DeficitRoundRobin);
 
+DeficitRoundRobin::DeficitRoundRobin(): BaseClass(){
+
+  this->m_serve_queue2 = false;
+  this->m_highMaxPackets = 100;
+  this->m_lowMaxPackets = 100;
+  this->m_highMaxBytes = 100*65535;
+  this->m_lowMaxBytes = 100*65535;
+  this->m_priorityPort = 3000;
+
+
+  q_class.push_back(new TrafficClass());
+  q_class.push_back(new TrafficClass());
+  q_class[0] -> setBytes(0);
+  q_class[1] -> setBytes(0);
+  q_class[0]->setMaxPackets(m_highMaxPackets);//Custom settings
+  q_class[1]->setMaxPackets(m_lowMaxPackets); //Custom settings
+  q_class[0]->setMaxBytes(m_highMaxBytes);    //Custom settings
+  q_class[1]->setMaxBytes(m_lowMaxBytes);     //Custom settings
+
+
+  //q_class[0] = new TrafficClass;              //initialize high priority queue
+  //q_class[1] = new TrafficClass;              //initialize low  priority queue
+  //q_class[0]->setBytes(0);                    //initialize
+  //q_class[1]->setBytes(0);                    //initialize
+  //q_class[0]->setMaxPackets(m_highMaxPackets);//Custom settings
+  //q_class[1]->setMaxPackets(m_lowMaxPackets); //Custom settings
+  //q_class[0]->setMaxBytes(m_highMaxBytes);    //Custom settings
+  //q_class[1]->setMaxBytes(m_lowMaxBytes);     //Custom settings
+  DestinationPortNumber * prioPN = new DestinationPortNumber(m_priorityPort); 
+
+  Filter * fil = new Filter();
+	fil->set_element(prioPN);
+  
+  //Filter * fil;
+  //fil->set_element(prioPN);
+  q_class[0]->filters.push_back(fil);
+
+
+  //NS_LOG_FUNCTION_NOARGS ();
+}
+
+
+DeficitRoundRobin::~DeficitRoundRobin() {
+	//NS_LOG_FUNCTION_NOARGS ();
+}
+
 
 TypeId DeficitRoundRobin::GetTypeId(void) {
 	static TypeId tid = TypeId("ns3::DeficitRoundRobin")
@@ -72,40 +118,6 @@ TypeId DeficitRoundRobin::GetTypeId(void) {
 }
 
 
-DeficitRoundRobin::DeficitRoundRobin(): BaseClass(){
-
-  this->m_serve_queue2 = false;
-  this->m_highMaxPackets = 100;
-  this->m_lowMaxPackets = 100;
-  this->m_highMaxBytes = 100*65535;
-  this->m_lowMaxBytes = 100*65535;
-  this->m_priorityPort = 3000;
-
-
-  q_class[0] = new TrafficClass;              //initialize high priority queue
-  q_class[1] = new TrafficClass;              //initialize low  priority queue
-  q_class[0]->setBytes(0);                    //initialize
-  q_class[1]->setBytes(0);                    //initialize
-  q_class[0]->setMaxPackets(m_highMaxPackets);//Custom settings
-  q_class[1]->setMaxPackets(m_lowMaxPackets); //Custom settings
-  q_class[0]->setMaxBytes(m_highMaxBytes);    //Custom settings
-  q_class[1]->setMaxBytes(m_lowMaxBytes);     //Custom settings
-  DestinationPortNumber * prioPN = new DestinationPortNumber(m_priorityPort); 
-
-  Filter * fil;
-  fil->set_element(prioPN);
-  q_class[0]->filters.push_back(fil);
-
-
-  //NS_LOG_FUNCTION_NOARGS ();
-}
-
-
-DeficitRoundRobin::~DeficitRoundRobin() {
-	//NS_LOG_FUNCTION_NOARGS ();
-}
-
-
 void
 DeficitRoundRobin::SetMode (DeficitRoundRobin::QueueMode mode)
 {
@@ -139,6 +151,7 @@ bool DeficitRoundRobin::DoEnqueue(Ptr<ns3::Packet> p) {
 	//NS_LOG_FUNCTION(this << p);
 
 	uint16_t weightedQueue = classify(p);
+	std::cout<<"helllo"<<std::endl;
 
 	// Second Queue
 	if (weightedQueue == 1) {
@@ -203,7 +216,7 @@ Ptr<ns3::Packet> DeficitRoundRobin::DoDequeue(void) {
   	if (!q_class[1]->m_queue.empty() && !m_serve_queue2) { //Check == false
 	    m_first_dc += quantumSize;
 	    Ptr<ns3::Packet> packet1 = q_class[1]->m_queue.front();
-	    // NS_LOG_LOGIC("-------------------Queue1 is being served-----------------------");
+	    //NS_LOG_LOGIC("-------------------Queue1 is being served-----------------------");
 	    // NS_LOG_LOGIC("Number bytes in first queue1 " << q_class[1]->getBytes());
 	    // NS_LOG_LOGIC("Defecit Counter Queue1 before " << m_first_dc);
 	   if(packet1->GetSize() < m_first_dc){
@@ -237,7 +250,7 @@ Ptr<ns3::Packet> DeficitRoundRobin::DoDequeue(void) {
 	            
 	    }
 	    
-	    if(q_class[0]->m_queue.empty()){
+	    if(q_class[0]->m_queue.empty() ){
       	m_second_dc = 0;
 	    }
 
@@ -272,7 +285,7 @@ Ptr<const ns3::Packet> DeficitRoundRobin::Peek(void) const {
 	if (queueToBeServed == 0) {
 
 		Ptr<Packet> pack1 = q_class[1]->m_queue.front();
-		// NS_LOG_LOGIC("Number packets " << q_class[1]->m_queue.size ());
+		 //NS_LOG_LOGIC("Number packets " << q_class[1]->m_queue.size ());
 		// NS_LOG_LOGIC("Number bytes " << q_class[1]->getBytes());
                 
 		return pack1;
@@ -346,6 +359,7 @@ Ptr<ns3::Packet>  DeficitRoundRobin::Remove(void){
 
 	return NULL;
 }
+
 
 
 

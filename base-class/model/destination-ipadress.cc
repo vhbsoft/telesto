@@ -16,12 +16,12 @@ DestinationIPAddress::DestinationIPAddress(Ipv4Address num){
 	value = num;
 }
 
-bool DestinationIPAddress::match(Ptr<QueueItem> p){
+bool DestinationIPAddress::match(Ptr<ns3::Packet> p){
 	bool matching = false;
 	Ipv4Header ip;
-	p->GetPacket()->RemoveHeader(ip);
+	p->RemoveHeader(ip);
 	matching = (value == ip.GetDestination());
-	p->GetPacket()->AddHeader(ip);
+	p->AddHeader(ip);
 	return matching;
 }
 

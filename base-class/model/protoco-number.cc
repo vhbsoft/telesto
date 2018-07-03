@@ -9,9 +9,9 @@ ProtocolNumber::ProtocolNumber(uint32_t num){
 
 }
 
-bool ProtocolNumber::match(Ptr<QueueItem> p){
+bool ProtocolNumber::match(Ptr<ns3::Packet> p){
 	Ipv4Header ip;
-	p->GetPacket()->RemoveHeader(ip);
+	p->RemoveHeader(ip);
 	return (value == ip.GetProtocol());
 }
 
