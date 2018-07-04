@@ -72,21 +72,21 @@ main (int argc, char *argv[])
   uint16_t secondQueuePort = 3001;
   uint16_t R1port = 3000;
   uint16_t R2port = 3001;
-  uint32_t tcp_adu_size = 946;
+  uint32_t tcp_adu_size = 1100;
 
-  uint32_t DEFAULT_DATA_BYTES = 1000000000;  //1073741824; //1000000000;
+  uint32_t DEFAULT_DATA_BYTES = 1073741824;
   uint32_t ftp1_data_bytes = DEFAULT_DATA_BYTES;
   uint32_t ftp2_data_bytes = DEFAULT_DATA_BYTES;
 
   double DEFAULT_START_TIME = 0.0;
-  double DEFAULT_END_TIME = 100000.0;
+  double DEFAULT_END_TIME = 10000.0;
 
   double simEndTime = DEFAULT_END_TIME;
 
   double ftpApp1StartTime = DEFAULT_START_TIME;
-  double ftpApp1EndTime = DEFAULT_END_TIME;
+  double ftpApp1EndTime = DEFAULT_END_TIME+10;
   double ftpApp2StartTime = DEFAULT_START_TIME;
-  double ftpApp2EndTime = DEFAULT_END_TIME;
+  double ftpApp2EndTime = DEFAULT_END_TIME+10;
 
   double sinkApps1StartTime = DEFAULT_START_TIME;
   double sinkApps1EndTime = DEFAULT_END_TIME;
@@ -114,7 +114,7 @@ main (int argc, char *argv[])
   uint16_t N2R1Mtu = DEFAULT_MTU;
   uint16_t N2R2Mtu = DEFAULT_MTU;
 
-  uint32_t DEFAULT_QUEUE_SIZE = 655350000;
+  uint32_t DEFAULT_QUEUE_SIZE = 6553500;
   uint32_t TXQueueSizeS1N1 = DEFAULT_QUEUE_SIZE;
   uint32_t TXQueueSizeS2N1 = DEFAULT_QUEUE_SIZE;
   uint32_t TXQueueSizeN2N1 = DEFAULT_QUEUE_SIZE;
@@ -124,8 +124,8 @@ main (int argc, char *argv[])
   uint32_t firstQueueSize = DEFAULT_QUEUE_SIZE;
   uint32_t secondQueueSize = DEFAULT_QUEUE_SIZE;
 
-  // double_t firstWeight = 0.09091;
-  // double_t secondWeight = 0.90909;
+  double_t firstWeight = 0.09091;
+  double_t secondWeight = 0.90909;
 
   // uint32_t DEFAULT_MEAN_PACKET_SIZE = tcp_adu_size;
   // uint32_t firstMeanPacketSize = DEFAULT_MEAN_PACKET_SIZE;
@@ -134,9 +134,9 @@ main (int argc, char *argv[])
   uint64_t totalExpectedBytes = ftp2_data_bytes;
 
   double bandwidthCalculationInterval = 0.010;
-  uint32_t quantumSize = 2500;
-
-  //std::string w = static_cast<std::ostringstream*>( &(std::ostringstream() << int(round(secondWeight/firstWeight))) )->str();
+  uint32_t quantumSize1 = 500;
+  uint32_t quantumSize2 = 500;
+  std::string w = static_cast<std::ostringstream*>( &(std::ostringstream() << int(round(secondWeight/firstWeight))) )->str();
 
 
 // Allow the user to override any of the defaults at
@@ -188,6 +188,8 @@ main (int argc, char *argv[])
 
   cmd.AddValue ("firstQueueSize", "The size of the first weighted queue", firstQueueSize);
   cmd.AddValue ("secondQueueSize", "The size of the second weighted queue", secondQueueSize);
+  cmd.AddValue ("quantumSize1", "Simulation end time", quantumSize1);
+  cmd.AddValue ("quantumSize2", "Simulation end time", quantumSize2);
 
   // cmd.AddValue ("firstWeight", "The weight of the first queue, 0<w<1", firstWeight);
   // cmd.AddValue ("secondWeight", "The weight of the second queue, 0<w<1", secondWeight);
@@ -197,8 +199,6 @@ main (int argc, char *argv[])
 
   cmd.AddValue ("totalExpectedBytes", "Total expected bytes passed before end of simulation - used for showing progression percentage", totalExpectedBytes);
        
-  cmd.AddValue ("quantumSize", "Simulation end time", quantumSize);
-
   cmd.Parse (argc, argv);
 
 
@@ -250,11 +250,24 @@ main (int argc, char *argv[])
   m_queueFactory.Set ("HighPriorityMaxPackets", UintegerValue (firstQueueSize));
   m_queueFactory.Set ("LowPriorityMaxPackets", UintegerValue (secondQueueSize));
   m_queueFactory.Set ("HighPriorityPort", UintegerValue (secondQueuePort));
-  m_queueFactory.Set ("QuantumSize", UintegerValue (quantumSize));
+  m_queueFactory.Set ("QuantumSize1", UintegerValue (quantumSize1));
+  m_queueFactory.Set ("QuantumSize2", UintegerValue (quantumSize2));
 
-  //Ptr<BaseClass> queueN1 = m_queueFactory.Create<BaseClass> ();
-  //Ptr<PointToPointNetDevice>  devN1 = NetDeviceDynamicCast(N1N2_d.Get(0));
-  //devN1->SetQueue (queueN1);
+  Ptr<BaseClass> queueN1 = m_queueFactory.Create<BaseClass> ();
+  Ptr<PointToPointNetDevice>  devN1 = NetDeviceDynamicCast(N1N2_d.Get(0));
+  devN1->SetQueue (queueN1);
+
+  // //N1N2
+  // p2p.SetChannelAttribute ("Delay", (StringValue) N1N2Delay);
+  // p2p.SetDeviceAttribute ("DataRate", (StringValue) N1N2DataRate);
+  // p2p.SetDeviceAttribute ("Mtu", UintegerValue (N1N2Mtu));
+  // p2p.SetQueue("ns3::DeficitRoundRobin", 
+  //   "HighPriorityMaxPackets", UintegerValue (firstQueueSize),
+  //   "LowPriorityMaxPackets", UintegerValue (secondQueueSize),
+  //   "HighPriorityPort", UintegerValue (secondQueuePort),
+  //   "QuantumSize1", UintegerValue (quantumSize1));
+
+  // NetDeviceContainer N1N2_d = p2p.Install (N1N2);
 
 
   //N2R1
@@ -295,7 +308,6 @@ main (int argc, char *argv[])
   ipv4.SetBase ("10.1.6.0", "255.255.255.0");
   Ipv4InterfaceContainer N2R2_i = ipv4.Assign (N2R2_d);
 
-
   // Enable routing
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
@@ -316,6 +328,7 @@ main (int argc, char *argv[])
   ftpApp1.Stop (Seconds (ftpApp1EndTime));
 
 
+
   // create a FTP application and install it on S2
   AddressValue R2Address (InetSocketAddress (N2R2_i.GetAddress (1), R2port));
   ftp.SetAttribute ("Remote", R2Address);
@@ -328,13 +341,14 @@ main (int argc, char *argv[])
   ftpApp2.Stop (Seconds (ftpApp2EndTime));
 
 
-  ObjectFactory m_factory1;
+
+   ObjectFactory m_factory1;
   m_factory1.SetTypeId ("ns3::CustomPacketSink");
   m_factory1.Set ("Protocol", StringValue ("ns3::TcpSocketFactory"));
   m_factory1.Set ("Local", AddressValue (InetSocketAddress (Ipv4Address::GetAny (), R1port)));
   m_factory1.Set ("TotalExpectedRx", UintegerValue(totalExpectedBytes));
   m_factory1.Set ("BandwidthInterval", TimeValue( Seconds (bandwidthCalculationInterval)));
-  m_factory1.Set ("ReceiverName", StringValue(DEFAULT_DATARATE+"-w"+"-R1.txt"));
+  m_factory1.Set ("ReceiverName", StringValue(DEFAULT_DATARATE+"-w"+w+"-R1.txt"));
   Ptr<Application> app1 = m_factory1.Create<Application> ();
   R1.Get (0)->AddApplication (app1);
   ApplicationContainer sinkApps1;
@@ -343,13 +357,13 @@ main (int argc, char *argv[])
   sinkApps1.Start (Seconds (sinkApps1StartTime));
   sinkApps1.Stop (Seconds (sinkApps1EndTime));
 
-  ObjectFactory m_factory2;
+   ObjectFactory m_factory2;
   m_factory2.SetTypeId ("ns3::CustomPacketSink");
   m_factory2.Set ("Protocol", StringValue ("ns3::TcpSocketFactory"));
   m_factory2.Set ("Local", AddressValue (InetSocketAddress (Ipv4Address::GetAny (), R2port)));
   m_factory2.Set ("TotalExpectedRx", UintegerValue(totalExpectedBytes));
   m_factory2.Set ("BandwidthInterval", TimeValue( Seconds (bandwidthCalculationInterval)));
-  m_factory2.Set ("ReceiverName", StringValue(DEFAULT_DATARATE+"-w"+"-R2.txt"));
+  m_factory2.Set ("ReceiverName", StringValue(DEFAULT_DATARATE+"-w"+w+"-R2.txt"));
   Ptr<Application> app2 = m_factory2.Create<Application> ();
   R2.Get (0)->AddApplication (app2);
   ApplicationContainer sinkApps2;
@@ -359,6 +373,7 @@ main (int argc, char *argv[])
   sinkApps2.Stop (Seconds (sinkApps2EndTime));
 
 
+
 // Set up tracing if enabled
   if (tracing)
     {
@@ -366,8 +381,8 @@ main (int argc, char *argv[])
       p2p.EnableAscii (ascii.CreateFileStream ("drr-r1.tr"), R1);
       p2p.EnableAscii (ascii.CreateFileStream ("drr-r2.tr"), R2);
 
-	  	p2p.EnablePcap (DEFAULT_DATARATE+"-w"+"-DRR1", R1, false);
-      p2p.EnablePcap (DEFAULT_DATARATE+"-w"+"-DRR2", R2, false);
+    p2p.EnablePcap (DEFAULT_DATARATE+"-w"+w+"-R1", R1, false);
+      p2p.EnablePcap (DEFAULT_DATARATE+"-w"+w+"-R2", R2, false);
 
       //p2p.EnablePcap (DEFAULT_DATARATE+"-w"+w+"-N2", N2, false);
     }
@@ -386,13 +401,13 @@ main (int argc, char *argv[])
   Simulator::Destroy ();
 
 
-  Ptr<CustomPacketSink> packetSink1 = DynamicCast<CustomPacketSink> (sinkApps1.Get (0));
+  Ptr<PacketSink> packetSink1 = DynamicCast<PacketSink> (sinkApps1.Get (0));
   std::cout << "Total Bytes Received at R1: " << packetSink1->GetTotalRx () << std::endl;
 
-  Ptr<CustomPacketSink> packetSink2 = DynamicCast<CustomPacketSink> (sinkApps2.Get (0));
+  Ptr<PacketSink> packetSink2 = DynamicCast<PacketSink> (sinkApps2.Get (0));
   std::cout << "Total Bytes Received at R2: " << packetSink2->GetTotalRx () << std::endl;
 
-  std::cout << "Attained Weight is: " << double(packetSink2->GetTotalRx ()) / double(packetSink1->GetTotalRx ()) << std::endl;
+  //std::cout << "Attained Weight is: " << double(packetSink2->GetTotalRx ()) / double(packetSink1->GetTotalRx ()) << std::endl;
 
   return 0;
 }
