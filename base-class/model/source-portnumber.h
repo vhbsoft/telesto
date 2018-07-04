@@ -19,7 +19,7 @@ class SourcePortNumber : public FilterElement{
 	
 	public:
 		SourcePortNumber(uint32_t num);
-		bool match(Ptr<ns3::Packet> p);
+		bool match(Ptr<QueueItem> p);
 
 };
 

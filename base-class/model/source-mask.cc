@@ -11,11 +11,11 @@ SourceMask::SourceMask(Ipv4Mask num){
 
 }
 
-//??????
-bool SourceMask::match(Ptr<ns3::Packet> p){
+
+bool SourceMask::match(Ptr<QueueItem> p){
 
 	Ipv4Header ip;
-	p->RemoveHeader(ip);
+	p->GetPacket()->RemoveHeader(ip);
 	return 0;
 }
 

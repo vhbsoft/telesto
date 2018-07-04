@@ -26,7 +26,7 @@ void Filter::set_element(ns3::FilterElement* filter_ele){
 }
 
 
-bool Filter::match(Ptr<ns3::Packet> p){
+bool Filter::match(Ptr<QueueItem> p){
 
 	for(unsigned int i=0; i<element.size(); i++){
 		if(element[i]->match(p) == false)

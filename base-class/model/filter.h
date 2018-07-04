@@ -21,7 +21,7 @@ class Filter{
 	public:
 		Filter();
 		void set_element(ns3::FilterElement*);
-		bool match(Ptr<ns3::Packet> p);
+		bool match(Ptr<QueueItem> p);
 		std::vector<ns3::FilterElement*> element;
 
 };

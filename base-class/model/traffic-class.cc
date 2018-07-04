@@ -83,7 +83,7 @@ void TrafficClass::setIsDefault(bool check){
 
 }
 
-bool TrafficClass::match(Ptr<ns3::Packet> p){
+bool TrafficClass::match(Ptr<QueueItem> p){
 	bool check = true;
 	for(unsigned int i=0; i<filters.size(); i++){
 		for(unsigned int j=0; j<filters[i]->element.size(); j++){

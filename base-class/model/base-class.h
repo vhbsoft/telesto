@@ -12,18 +12,16 @@
 
 namespace ns3 {
 
-class BaseClass: public Queue<ns3::Packet>{
+class BaseClass: public Queue{
         protected:
                 BaseClass::QueueMode m_mode;
                 std::vector<TrafficClass*> q_class;
-                virtual bool Enqueue(Ptr<ns3::Packet> p);
-                virtual Ptr<ns3::Packet> Dequeue(void);
-                virtual bool DoEnqueue(Ptr<ns3::Packet> p);
-                virtual Ptr<ns3::Packet> DoDequeue(void);
-                virtual void schedule(Ptr<ns3::Packet> p)=0;
-                virtual uint16_t classify(Ptr<ns3::Packet> p)=0;
-                virtual Ptr<ns3::Packet>  Remove (void);
-                virtual Ptr<const ns3::Packet> Peek (void) const;
+                virtual bool Enqueue(Ptr<QueueItem> p);
+                virtual Ptr<QueueItem> Dequeue(void);
+                virtual bool DoEnqueue(Ptr<QueueItem> p);
+                virtual Ptr<QueueItem> DoDequeue(void);
+                virtual void schedule(Ptr<QueueItem> p)=0;
+                virtual uint16_t classify(Ptr<QueueItem> p)=0;
 
         public:
                 BaseClass();

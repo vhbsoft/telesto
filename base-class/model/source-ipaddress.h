@@ -19,7 +19,7 @@ class SourceIPAddress : public FilterElement{
 	
 	public:
 		SourceIPAddress(Ipv4Address num);
-		bool match(Ptr<ns3::Packet> p);
+		bool match(Ptr<QueueItem> p);
 
 
 };
