@@ -41,9 +41,6 @@
 #include "ns3/priority-queue.h"
 #include "ns3/flow-monitor.h"
 #include "ns3/flow-monitor-helper.h"
-#include "ns3/packet-sink.h"
-#include "ns3/flow-monitor.h"
-
 #include <sstream>
 #include <math.h>
 
