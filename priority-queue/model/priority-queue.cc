@@ -16,11 +16,11 @@
 
 #include <iostream>
 
-//LOG_COMPONENT_DEFINE ("StrictPriorityQueue");
+NS_LOG_COMPONENT_DEFINE ("StrictPriorityQueue");
 
 namespace ns3 {
 
-//NS_OBJECT_ENSURE_REGISTERED (StrictPriorityQueue);
+NS_OBJECT_ENSURE_REGISTERED (StrictPriorityQueue);
 
 //Strict Priority Queue constructor 
 
@@ -52,12 +52,12 @@ StrictPriorityQueue::StrictPriorityQueue() : BaseClass(){
   q_class[0]->filters.push_back(fil);
 
 
-  //NS_LOG_FUNCTION_NOARGS ();
+  NS_LOG_FUNCTION_NOARGS ();
 }
 
 StrictPriorityQueue::~StrictPriorityQueue ()
 {
-  //NS_LOG_FUNCTION_NOARGS ();
+  NS_LOG_FUNCTION_NOARGS ();
 }
 
 TypeId 
@@ -110,19 +110,19 @@ StrictPriorityQueue::GetTypeId (void)
 void
 StrictPriorityQueue::SetMode (StrictPriorityQueue::QueueMode mode)
 {
-  //NS_LOG_FUNCTION (mode);
+  NS_LOG_FUNCTION (mode);
   this->m_mode = mode;
 }
 
 StrictPriorityQueue::QueueMode
 StrictPriorityQueue::GetMode (void)
 {
-  //NS_LOG_FUNCTION_NOARGS ();
+  NS_LOG_FUNCTION_NOARGS ();
   return this->m_mode;
 }
 
 uint16_t
-StrictPriorityQueue::classify (Ptr<ns3::Packet> p)
+StrictPriorityQueue::classify (Ptr<QueueItem> p)
 {
 
   uint16_t priority;
@@ -138,9 +138,9 @@ StrictPriorityQueue::classify (Ptr<ns3::Packet> p)
 }
 
 bool
-StrictPriorityQueue::DoEnqueue (Ptr<ns3::Packet> p)
+StrictPriorityQueue::DoEnqueue (Ptr<QueueItem> p)
 {
-  //NS_LOG_FUNCTION (this << p);
+  NS_LOG_FUNCTION (this << p);
 
   uint16_t priority = classify (p);
 
@@ -149,23 +149,23 @@ StrictPriorityQueue::DoEnqueue (Ptr<ns3::Packet> p)
     {
       if (m_mode == QUEUE_MODE_PACKETS && (q_class[0]->m_queue.size() >= q_class[0]->getMaxPackets()))
         {
-          //NS_LOG_LOGIC ("SPQ-High: Queue full (at max packets) -- droppping pkt");
-          //DoRemove(p);
+          NS_LOG_LOGIC ("SPQ-High: Queue full (at max packets) -- droppping pkt");
+          Drop (p->GetPacket());
           return false;
         }
       
-      if (m_mode == QUEUE_MODE_BYTES && (q_class[0]->getBytes() + p->GetSize() >= q_class[0]->getMaxBytes()))
+      if (m_mode == QUEUE_MODE_BYTES && (q_class[0]->getBytes() + p->GetPacket()->GetSize() >= q_class[0]->getMaxBytes()))
         {
-          //NS_LOG_LOGIC ("SPQ-High: Queue full (packet would exceed max bytes) -- droppping pkt");
-          //DoRemove(p);
+          NS_LOG_LOGIC ("SPQ-High: Queue full (packet would exceed max bytes) -- droppping pkt");
+          Drop (p->GetPacket());
           return false;
         }
-      //NS_LOG_LOGIC ("------------------------ENQ High ----------------");
-      q_class[0]->setBytes(q_class[0]->getBytes() + p->GetSize());
+      NS_LOG_LOGIC ("------------------------ENQ High ----------------");
+      q_class[0]->setBytes(q_class[0]->getBytes() + p->GetPacket()->GetSize());
       q_class[0]->m_queue.push(p);
       
-      ////NS_LOG_LOGIC ("SPQ: Number packets " << q_class[0]->m_queue.size());
-      ////NS_LOG_LOGIC ("SPQ: Number bytes " << q_class[0]->getBytes());
+      //NS_LOG_LOGIC ("SPQ: Number packets " << q_class[0]->m_queue.size());
+      //NS_LOG_LOGIC ("SPQ: Number bytes " << q_class[0]->getBytes());
       
       return true; 
     }
@@ -175,23 +175,23 @@ StrictPriorityQueue::DoEnqueue (Ptr<ns3::Packet> p)
     {
       if (m_mode == QUEUE_MODE_PACKETS && (q_class[1]->m_queue.size() >= q_class[1]->getMaxPackets()))
         {
-          //NS_LOG_LOGIC ("SPQ-Low: Queue full (at max packets) -- droppping pkt");
-         // DoRemove(p);
+          NS_LOG_LOGIC ("SPQ-Low: Queue full (at max packets) -- droppping pkt");
+          Drop (p->GetPacket());
           return false;
         }
       
-      if (m_mode == QUEUE_MODE_BYTES && (q_class[1]->getBytes() + p->GetSize() >= q_class[1]->getMaxBytes()))
+      if (m_mode == QUEUE_MODE_BYTES && (q_class[1]->getBytes() + p->GetPacket()->GetSize() >= q_class[1]->getMaxBytes()))
         {
-          //NS_LOG_LOGIC ("SPQ-Low: Queue full (packet would exceed max bytes) -- droppping pkt");
-          //DoRemove(p);
+          NS_LOG_LOGIC ("SPQ-Low: Queue full (packet would exceed max bytes) -- droppping pkt");
+          Drop (p->GetPacket());
           return false;
         }
-      //NS_LOG_LOGIC ("----------------------------------------------ENQ LOW ----------------");
-      q_class[1]->setBytes( q_class[1]->getBytes() + p->GetSize ());
+      NS_LOG_LOGIC ("----------------------------------------------ENQ LOW ----------------");
+      q_class[1]->setBytes( q_class[1]->getBytes() + p->GetPacket()->GetSize ());
       q_class[1]->m_queue.push (p);
       
-      ////NS_LOG_LOGIC ("SPQ: Number packets " << q_class[1]->m_queue.size ());
-      ////NS_LOG_LOGIC ("SPQ: Number bytes " << q_class[1]->getBytes());
+      //NS_LOG_LOGIC ("SPQ: Number packets " << q_class[1]->m_queue.size ());
+      //NS_LOG_LOGIC ("SPQ: Number bytes " << q_class[1]->getBytes());
       
       return true;      
     }
@@ -203,91 +203,88 @@ StrictPriorityQueue::DoEnqueue (Ptr<ns3::Packet> p)
     }
 }
 
-Ptr<ns3::Packet>
+Ptr<QueueItem>
 StrictPriorityQueue::DoDequeue (void)
 {
-  //NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION (this);
   
   if (!q_class[0]->m_queue.empty ())
     {
-      Ptr<ns3::Packet> p = q_class[0]->m_queue.front ();
+      Ptr<QueueItem> p = q_class[0]->m_queue.front ();
       q_class[0]->m_queue.pop ();
-      q_class[0]->setBytes( (q_class[0]->getBytes()) - (p->GetSize()));
+      q_class[0]->setBytes( (q_class[0]->getBytes()) - (p->GetPacket()->GetSize()));
       
-      //NS_LOG_LOGIC ("SPQ-High: Popped " <<Simulator::Now ().GetSeconds ()<< " " << p);
+      NS_LOG_LOGIC ("SPQ-High: Popped " <<Simulator::Now ().GetSeconds ()<< " " << p);
       
-      //NS_LOG_LOGIC ("SPQ: Number packets " << q_class[0]->m_queue.size());
-      //NS_LOG_LOGIC ("SPQ: Number bytes " << q_class[0]->getBytes());
+      NS_LOG_LOGIC ("SPQ: Number packets " << q_class[0]->m_queue.size());
+      NS_LOG_LOGIC ("SPQ: Number bytes " << q_class[0]->getBytes());
       
-      return p;
+      return new QueueItem(p->GetPacket());
     }
   else
     { 
-      //NS_LOG_LOGIC ("SPQ-low: High priority queue empty, serving low priority queue");
+      NS_LOG_LOGIC ("SPQ-low: High priority queue empty, serving low priority queue");
 
       if (!q_class[1]->m_queue.empty ())
         {
-          Ptr<ns3::Packet> p = q_class[1]->m_queue.front ();
+          Ptr<QueueItem> p = q_class[1]->m_queue.front ();
           q_class[1]->m_queue.pop ();
-          q_class[1]->setBytes( (q_class[1]->getBytes()) - (p->GetSize()));
+          q_class[1]->setBytes( (q_class[1]->getBytes()) - (p->GetPacket()->GetSize()));
           
-          //NS_LOG_LOGIC ("SPQ-Low: Popped " <<Simulator::Now ().GetSeconds ()<< " " << p);
+          NS_LOG_LOGIC ("SPQ-Low: Popped " <<Simulator::Now ().GetSeconds ()<< " " << p);
           
-          //NS_LOG_LOGIC ("SPQ: Number packets " << q_class[1]->m_queue.size());
-          //NS_LOG_LOGIC ("SPQ: Number bytes " << q_class[1]->getBytes());
+          NS_LOG_LOGIC ("SPQ: Number packets " << q_class[1]->m_queue.size());
+          NS_LOG_LOGIC ("SPQ: Number bytes " << q_class[1]->getBytes());
           
-          return p;
+          return  new QueueItem(p->GetPacket());
         }
       else
         {
-          //NS_LOG_LOGIC ("SPQ: Low priority queue empty---------------");
+          NS_LOG_LOGIC ("SPQ: Low priority queue empty---------------");
           return 0;
         } 
     } 
 }
 
 void 
-StrictPriorityQueue::schedule(Ptr<ns3::Packet> p){};
+StrictPriorityQueue::schedule(Ptr<QueueItem> p){};
 
-Ptr<const ns3::Packet>
+Ptr<const QueueItem>
 StrictPriorityQueue::DoPeek (void) const
 {
-  //NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION (this);
   
   if (!q_class[0]->m_queue.empty ())
     {
-      Ptr<ns3::Packet> p = q_class[0]->m_queue.front ();
+      Ptr<QueueItem> p = q_class[0]->m_queue.front ();
       
-      ////NS_LOG_LOGIC ("Number packets " << q_class[0]->m_queue.size());
-      ////NS_LOG_LOGIC ("Number bytes " << q_class[0]->getBytes());
+      //NS_LOG_LOGIC ("Number packets " << q_class[0]->m_queue.size());
+      //NS_LOG_LOGIC ("Number bytes " << q_class[0]->getBytes());
       
-      return p;
+      return new QueueItem(p->GetPacket());
     }
   else
     {
-      ////NS_LOG_LOGIC ("High priority queue empty");
+      //NS_LOG_LOGIC ("High priority queue empty");
 
       if (!q_class[1]->m_queue.empty ())
         {
-          Ptr<ns3::Packet> p = q_class[1]->m_queue.front ();
+          Ptr<QueueItem> p = q_class[1]->m_queue.front ();
           
-          ////NS_LOG_LOGIC ("Number packets " << q_class[1]->m_queue.size());
-          ////NS_LOG_LOGIC ("Number bytes " << q_class[1]->getBytes());
+          //NS_LOG_LOGIC ("Number packets " << q_class[1]->m_queue.size());
+          //NS_LOG_LOGIC ("Number bytes " << q_class[1]->getBytes());
           
-          return p;
+          return new QueueItem(p->GetPacket());
         }
       else
         {
-          ////NS_LOG_LOGIC ("Low priority queue empty");
+          //NS_LOG_LOGIC ("Low priority queue empty");
           return 0;
         }
     }
 }
-
-
-
 // bool 
-// StrictPriorityQueue::Enqueue(Ptr< > p){
+// StrictPriorityQueue::Enqueue(Ptr<QueueItem> p){
 //   return DoEnqueue(p);
 // }
 // Ptr<QueueItem> 

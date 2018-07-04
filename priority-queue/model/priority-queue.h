@@ -17,13 +17,13 @@ class TraceContainer;
 
 class StrictPriorityQueue : public BaseClass {
 
-  bool DoEnqueue(Ptr<ns3::Packet> p);
-  Ptr<ns3::Packet> DoDequeue(void);
-  Ptr<const ns3::Packet> DoPeek (void) const;
-    // returns 0 for low
+  bool DoEnqueue(Ptr<QueueItem> p);
+  Ptr<QueueItem> DoDequeue(void);
+  Ptr<const QueueItem> DoPeek (void) const;
+  // returns 0 for low
   // returns 1 for high 
-  uint16_t classify (Ptr<ns3::Packet> p);
-  void schedule(Ptr<ns3::Packet> p);
+  uint16_t classify (Ptr<QueueItem> p);
+  void schedule(Ptr<QueueItem> p);
   uint32_t m_priorityPort;
 
   uint32_t m_highMaxPackets;
@@ -35,9 +35,9 @@ class StrictPriorityQueue : public BaseClass {
   // QueueMode m_mode;
   
   public:
-    // bool Enqueue(Ptr<ns3::Packet> p);
-    // Ptr<ns3::Packet> Dequeue(void);
-    // Ptr<const ns3::Packet> Peek (void) const;
+    // bool Enqueue(Ptr<QueueItem> p);
+    // Ptr<QueueItem> Dequeue(void);
+    // Ptr<const QueueItem> Peek (void) const;
     static TypeId GetTypeId (void);
     void SetMode (StrictPriorityQueue::QueueMode mode);
     StrictPriorityQueue::QueueMode GetMode (void);
